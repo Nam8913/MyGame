@@ -1,0 +1,11 @@
+<Infor>
+    <name>Example</name>
+    <version>1.0</version>
+    <description>This is example !</description>
+    <author>test</author>
+    <category>Content</category>
+    <id_pack_for_mod>just_example</id_pack_for_mod>
+    <supportedVersions>
+    <li>1.0</li>
+    </supportedVersions>
+</Infor>

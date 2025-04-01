@@ -1,0 +1,11 @@
+<Infor>
+    <name>Core</name>
+    <version>1.0</version>
+    <description>This is core of game !</description>
+    <author>me</author>
+    <category>Content</category>
+    <id_pack_for_mod>Core_of_game</id_pack_for_mod>
+    <supportedVersions>
+    <li>1.0</li>
+    </supportedVersions>
+</Infor>
