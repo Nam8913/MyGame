@@ -8,6 +8,9 @@ public static class ModEngineConfig
 {
     static ModEngineConfig()
     {
+    }
+    public static void Init()
+    {
         BuilderProcess.Init();
         string path = (Path.Combine(FoulderGen.ConfigDir, CONFIG_FILE_NAME));
         data = DirectXmlLoader.ProcessLoadFromXmlFile<ModConfigData>(path);
@@ -27,20 +30,13 @@ public static class ModEngineConfig
             }
             data = DirectXmlLoader.SimpleLoadFromXmlFile<ModConfigData>(path);
         }
-        
-
-        //ModEngineLoader.LoadModProcess();
-    }
-    public static void Process()
-    {
-        
     }
     public static ModConfigData data;
     public const string CONFIG_FILE_NAME = "ModConfig.xml";
     public const string CONFIG_FILE_DEFAULT = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ModConfigData version=""0.0.1"">
     <activeMods>
-        <li>Core</li>
+        <li>Core_of_game</li>
     </activeMods>
 </ModConfigData>";
     public class ModConfigData

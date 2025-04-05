@@ -1,0 +1,70 @@
+<Data>
+   <SkillStat id="skill_strength">
+      <name>Strength</name>
+      <description>Strength is a measure of your physical power, and how well you can hit things.</description>
+   </SkillStat>
+   <SkillStat id="skill_dexteriy">
+      <name>Dexterity</name>
+      <description>Dexterity is a measure of your ability to move quickly and accurately.</description>
+   </SkillStat>
+   <SkillStat id="skill_inteligence">
+      <name>Intelligence</name>
+      <description>Intelligence is a measure of your ability to think critically and solve problems.</description>
+   </SkillStat>
+   <SkillStat id="skill_perception">
+      <name>Perception</name>
+      <description>Perception is a measure of your ability to detect and interpret subtle changes in your environment.</description>
+   </SkillStat>
+    <SkillStat id="skill_shooting">
+      <name>Shooting</name>
+      <description>Ranged combat, with both high-tech and low-tech weapons.</description>
+   </SkillStat>
+   <SkillStat id="skill_melee">
+      <name>Melee</name>
+      <description>Melee combat, both armed and unarmed.</description>
+   </SkillStat>
+   <SkillStat id="skill_construction">
+      <name>Construction</name>
+      <description>Constructing and deconstructing structures and furniture.</description>
+   </SkillStat>
+   <SkillStat id="skill_cooking">
+      <name>Cooking</name>
+      <description>Your skill in combining food ingredients to make other, tastier food items.  Also includes food preservation and safety, brewing, butchery, and more.</description>
+   </SkillStat>
+   <SkillStat id="skill_plants">
+      <name>Plants</name>
+      <description>Sowing, caring for and harvesting crops, and foraging for food while traveling.</description>
+   </SkillStat>
+   <SkillStat id="skill_fabrication">
+      <name>Plants</name>
+      <description>Your skill in working with raw materials and shaping them into useful objects.  This skill plays an important role in the crafting of many objects.</description>
+   </SkillStat>
+   <SkillStat id="skill_mechanics">
+      <name>Plants</name>
+      <description>Your skill in engineering, maintaining and repairing vehicles and other mechanical systems.  This skill covers the craft of items with complex parts, and plays a role in the installation of bionic equipment.</description>
+   </SkillStat>
+   <SkillStat id="skill_electronics">
+      <name>Electronic</name>
+      <description>Your skill in dealing with electrical systems, used in the craft and repair of objects with electrical components.  This skill is an important part of installing and managing bionic implants.</description>
+   </SkillStat>
+   <SkillStat id="skill_tailor">
+      <name>Tailor</name>
+      <description>Your skill in the craft and repair of clothing, bags, blankets and other textiles.  Affects knitting, sewing, stitching, weaving, and nearly anything else involving a needle and thread.</description>
+   </SkillStat>
+    <SkillStat id="skill_medicine">
+      <name>Medicine</name>
+      <description>Your skill in effecting medical treatment.  Higher levels allow better use of medicines and items like bandages and first aid kits, and reduce the failure and complication rates of medical procedures.</description>
+   </SkillStat>
+   <SkillStat id="skill_dodge">
+      <name>Dodging</name>
+      <description>Your ability to dodge an oncoming threat, be it an enemy's attack, a triggered trap, or a falling rock.  This skill is also used in attempts to fall gracefully, and for other acrobatic feats.  The first number shown includes modifiers, and the second does not.</description>
+   </SkillStat>
+   <SkillStat id="skill_survival">
+      <name>Survival</name>
+      <description>Your skill in surviving the wilderness, and in crafting various basic survival items.</description>
+   </SkillStat>
+   <SkillStat id="skill_athletics">
+      <name>Athletics</name>
+      <description>Your athletic ability, including swimming endurance and improves your overall cardio fitness and stamina.</description>
+   </SkillStat>
+</Data>

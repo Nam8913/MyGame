@@ -4,6 +4,8 @@ using System.Xml;
 using UnityEngine;
 using System.Xml.Serialization;
 using System.Linq;
+using System.Collections.Generic;
+using System.Reflection;
 public static class DirectXmlLoader
 {
     public static T SimpleLoadFromXmlFile<T>(string filePath) where T : new()
@@ -73,12 +75,73 @@ public static class DirectXmlLoader
         {
             return typeof(T);
         }
-        Type typeInAnyAssembly = TypePatch.GetTypeInAnyAssembly(xmlAttribute.Value, typeof(T).Namespace);
+        Type typeInAnyAssembly = GenTypes.GetTypeInAnyAssembly(xmlAttribute.Value, typeof(T).Namespace);
         if (typeInAnyAssembly == null)
         {
             Debug.LogError("Could not find type named " + xmlAttribute.Value + " from node " + xmlRoot.OuterXml);
             return typeof(T);
         }
         return typeInAnyAssembly;
+    }
+
+    public static XmlDocument CombineIntoUnifiedXML(List<FileInfo> files)
+    {
+        XmlDocument unifiedXml = new XmlDocument();
+        XmlNode root = unifiedXml.CreateElement("Data");
+        unifiedXml.AppendChild(root);
+        XmlReaderSettings xmlReaderSettings = new XmlReaderSettings();
+        xmlReaderSettings.IgnoreComments = true;
+        xmlReaderSettings.CheckCharacters = false;
+        foreach (FileInfo file in files)
+        {
+            using (StringReader stringReader = new StringReader(File.ReadAllText(file.FullName)))
+            {
+                using (XmlReader xmlReader = XmlReader.Create(stringReader, xmlReaderSettings))
+                {
+                    XmlDocument xmlDoc = new XmlDocument();
+                    xmlDoc.Load(xmlReader);
+
+                    if(xmlDoc.DocumentElement.Name != "Data")
+                    {
+                        Debug.LogError(" root element named " + xmlDoc.DocumentElement.Name + "in file: "+ file.FullName +" should be named Data");
+                        //continue;
+                    }
+                    foreach (XmlNode item in xmlDoc.DocumentElement.ChildNodes)
+                    {
+                        XmlNode node = item;
+                        XmlNode fileNode = unifiedXml.ImportNode(node, true);
+                        root.AppendChild(fileNode);
+                    }
+                }
+            }
+            
+            
+        }
+        return unifiedXml;
+    }
+
+    public static void LoadUnifiedXML(XmlDocument unified , List<System.Type> dataTypes)
+    {
+        BuilderProcessDeserialize builder = BuilderProcess.ProcessOrder["data"](unified.DocumentElement , typeof(Data));
+        builder.Invoke();
+        if(builder != null)
+        {
+            if(builder.HasChildren())
+            {
+                foreach(var obj in builder.children)
+                {
+                    if(obj != null)
+                    {
+                        TypePatch.PrintObjectInfo(obj.dataFields.First().Value);
+                    }else
+                    {
+                        Debug.LogError("Object is null " + obj.GetType().ToString());
+                    }
+                }
+            }
+        }else
+        {
+            Debug.LogError("Unified XML document is not valid");
+        }
     }
 }

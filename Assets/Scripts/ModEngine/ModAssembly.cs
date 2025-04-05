@@ -46,7 +46,7 @@ public class ModAssembly
             }
             if (!(assembly == null) && this.AssemblyIsUsable(assembly))
 				{
-					TypePatch.ClearCache();
+					GenTypes.ClearCache();
 					this.loadedAssemblies.Add(assembly);
 				}
          }

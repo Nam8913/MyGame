@@ -1,7 +1,8 @@
 
 <ModConfigData version="0.0.1">
     <activeMods>
-        <li>Core</li>
+        <li>Core_of_game</li>
+        <li>just_example</li>
     </activeMods>
 </ModConfigData>
                     

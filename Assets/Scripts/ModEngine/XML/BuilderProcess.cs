@@ -224,45 +224,114 @@ public static class BuilderProcess
                 prc.dataFields.Add(obj.GetType().ToString(),obj);
                 foreach(XmlNode child in node.ChildNodes)
                 {
-                    FieldInfo field = obj.GetType().GetField(child.Name);
-                    if(field.GetValue(obj) == null)
+                    try
                     {
-                        object instance = Activator.CreateInstance(field.FieldType);
-                        field.SetValue(obj, instance);
-                    }
-                    if(CanOrderProcess(field.FieldType))
-                    {
-                        BuilderProcessDeserialize builder = GetBuilderForType(field.FieldType,child);
-                        prc.AddChild(builder);
-                        builder.Invoke();
-                    }else
-                    {
-                        if(child.InnerText != null)
+                        FieldInfo field = obj.GetType().GetField(child.Name);
+                        if(field != null)
                         {
+                            try
+                            {
+                                if(field.GetValue(obj) == null && (TypePatch.IsList(field.FieldType) || TypePatch.IsDictionary(field.FieldType)))
+                                {
+                                    object instance = Activator.CreateInstance(field.FieldType);
+                                    field.SetValue(obj, instance);
+                                }
+                            }
+                            catch (System.Exception ex)
+                            {
+                                Debug.LogError($"Failed to create default constructor for {field.Name} \n {ex.Message}");
+                            }
                             
-                            var value = Convert.ChangeType(child.InnerText, field.FieldType);
-                            obj.GetType().GetField(child.Name).SetValue(obj, value);
-                        }else if(child.Attributes["value"].Value != null)
+                            if(CanOrderProcess(field.FieldType))
+                            {
+                                BuilderProcessDeserialize builder = GetBuilderForType(field.FieldType,child);
+                                prc.AddChild(builder);
+                                builder.Invoke();
+                            }else
+                            {
+                                if(child.InnerText != null)
+                                {
+                                    
+                                    var value = Convert.ChangeType(child.InnerText, field.FieldType);
+                                    obj.GetType().GetField(child.Name).SetValue(obj, value);
+                                }else if(child.Attributes["value"].Value != null)
+                                {
+                                    //<fieldName value = "valueData"></fieldName>
+                                    var value = Convert.ChangeType(child.Attributes["value"].Value, field.FieldType);
+                                    obj.GetType().GetField(child.Name).SetValue(obj, value);
+                                }
+                            }
+                        }else
                         {
-                            //<fieldName value = "valueData"></fieldName>
-                            var value = Convert.ChangeType(child.Attributes["value"].Value, field.FieldType);
-                            obj.GetType().GetField(child.Name).SetValue(obj, value);
+                            Debug.LogError("Invalid name node:" + child.Name + " for get field in type object: " + obj.GetType().FullName);
+                            continue;
                         }
+                        
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Debug.LogError("Error processing child node: " + ex.Message);
+                        continue;
                     }
                 }
 
                 foreach (XmlAttribute attr in node.Attributes)
                 {
                     FieldInfo field = obj.GetType().GetField(attr.Name);
-                    var value = Convert.ChangeType(attr.Value, field.FieldType);
-                    field.SetValue(obj, value);
+                    if(field != null)
+                    {
+                        var value = Convert.ChangeType(attr.Value, field.FieldType);
+                        var old = field.GetValue(obj);
+                        bool flag = old != null ? true : false;
+                        if(flag)
+                        {
+                            Debug.LogWarning(String.Concat(
+                            "Variable: ",
+                            attr.Name,
+                            " already have value: ",
+                            old,
+                            ", but it's being set to a new value: ",
+                            attr.Value,
+                            " by attribute in node: ",
+                            node.Name,
+                            " in object:",
+                            obj.GetType().FullName,
+                            "\n in file: ",
+                            node.OwnerDocument.BaseURI
+                            ));
+                        }
+                        field.SetValue(obj, value);
+                    }
+                    
                 }
                
                 if(prc.parent != null)
                 {
-                    var parent =  prc.parent.dataFields.Values.First();
-                    parent.GetType().GetField(node.Name).SetValue(parent,obj);
+                    if(prc.parent.dataFields.Any())
+                    {
+                        var parent = prc.parent.dataFields.Values.First();
+                        parent.GetType().GetField(node.Name).SetValue(parent,obj);
+                    }
                 }
+                if(obj != null && GenTypes.IsData(obj.GetType()))
+                {
+                    
+                    Data data = ((Data)obj);
+                    string key = data.id;
+                    if(!string.IsNullOrEmpty(key))
+                    {
+                        if(!Database.DatabaseDic.ContainsKey(key))
+                        {
+                            Database.AddData(key, (Data)obj);
+                        }else
+                        {
+                            Database.RemoveData(key);
+                            Database.AddData(key, (Data)obj);
+                        }
+                    }
+                    
+                }
+            
             });
         });
 
@@ -303,9 +372,43 @@ public static class BuilderProcess
             });
             return builder;
         });
+
+        ProcessOrder.Add("data",(XmlNode rootNode,System.Type Otype) =>
+        {
+            return new BuilderProcessDeserialize()
+            {
+                type = "data"
+            }.createProcess(rootNode)
+            .Make( prc => {
+                XmlNode node = prc.node;
+                if(node.HasChildNodes)
+                {
+                    foreach(XmlNode childNode in node.ChildNodes)
+                    {
+                        BuilderProcessDeserialize builder = GetBuilderForType(GenTypes.GetTypeInAnyAssembly(childNode.Name,childNode.Attributes["namespace"]?.InnerText),childNode);
+                        //BuilderProcessDeserialize builder = ProcessOrder["data"](childNode , GenTypes.GetTypeInAnyAssembly(childNode.Name,childNode.Attributes["namespace"]?.InnerText));
+                        if(builder != null)
+                        {
+                            Debug.Log("Serializing " + childNode.Name + " to " + prc.type);
+                            prc.AddChild(builder);
+                            builder.Invoke();
+                        }else
+                        {
+                            Debug.LogError($"No builder found for type {childNode.Name}");
+                        }
+                    }
+                }
+                
+            });
+        });
     }
     public static BuilderProcessDeserialize GetBuilderForType(System.Type type,XmlNode xmlNode)
     {
+        if(type == null)
+        {
+            Debug.LogError("Type doesn't not exits for node: " + xmlNode.Name + " \n" + xmlNode.OuterXml);
+            return null;
+        }
         //string name = type.ToString().Split('+').Last();
         string name = GetOrderWith(type);
        if (ProcessOrder.TryGetValue(name, out var processor))

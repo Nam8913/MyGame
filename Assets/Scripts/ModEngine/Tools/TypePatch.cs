@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEngine;
@@ -48,15 +49,6 @@ public static class TypePatch
     {
         return type.GetCustomAttribute(typeof(TAttribute)) != null;
     }
-    public static SupLoadXmlAttribute.typeSup SupportLoad(Type type)
-    {
-        if (HasAttribute<SupLoadXmlAttribute>(type))
-        {
-            SupLoadXmlAttribute supLoadXmlAttribute = (SupLoadXmlAttribute)type.GetCustomAttribute(typeof(SupLoadXmlAttribute));
-            return supLoadXmlAttribute.type;
-        }
-        return SupLoadXmlAttribute.typeSup.noSup;
-    }
 
     public static bool IsList(Type type)
     {
@@ -83,231 +75,60 @@ public static class TypePatch
         return false;
     }
 
-    public static Type GetTypeInAnyAssembly(string typeName, string nameSpace)
-    {        
-        Type type = null;
-        if (!typeCache.TryGetValue(nameSpace, out type))
+    public static object HelpChangeType(string value, Type targetType)
+    {
+        object rs = null;
+        try
         {
-            type = GetTypeInAnyAssemblyInt(typeName, nameSpace);
-            typeCache.Add(nameSpace, type);
+            rs = Convert.ChangeType(value, targetType);
+        }
+        catch (InvalidCastException invalidCast)
+        {
+            Debug.LogError($"Can't convert {value} to {targetType.Name}");
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError($"Can't convert {value} to {targetType.Name}: {ex.Message}");
+            Debug.LogError(ex.StackTrace);
+            throw;
+        } 
+        return rs;
+    }
+    public static Type ParseType(string str)
+    {
+        if (str == null) return null;
+        str = Regex.Replace(str, @"\s+", " ").Trim(); // Xóa khoảng trắng thừa
+        //Type type = Type.GetType(str);
+        Type type = GenTypes.GetTypeInAnyAssembly(str);
+        if (type == null)
+        {
+            Debug.LogError($"Type '{str}' không tồn tại.");
+            return null;
         }
         return type;
     }
-    private static Type GetTypeInAnyAssemblyInt(string typeName, string nameSpace)
+    public static float ParseFloat(string str)
     {
-        Type rs = GetTypeInAnyAssemblyRaw(typeName);
-        if(rs != null)
-        {
-            return rs;
-        }
-        if(!string.IsNullOrEmpty(nameSpace) && IgnoredNamespaceNames.Contains(nameSpace))
-        {
-            rs = GetTypeInAnyAssemblyRaw(nameSpace+"."+typeName);
-        }
-        if(TryGetMixedAssemblyGenericType(typeName,out rs))
-        {
-            return rs;
-        }
-        return null;
+        return float.Parse(str, CultureInfo.InvariantCulture);
     }
-    private static bool TryGetMixedAssemblyGenericType(string typeName, out Type type)
-		{
-			type = GetTypeInAnyAssemblyRaw(typeName);
-			if (type == null && typeName.Contains("`"))
-			{
-				try
-				{
-					Match match = Regex.Match(typeName, "(?<MainType>.+`(?<ParamCount>[0-9]+))(?<Types>\\[.*\\])");
-					if (match.Success)
-					{
-						int capacity = int.Parse(match.Groups["ParamCount"].Value);
-						string value = match.Groups["Types"].Value;
-						List<string> list = new List<string>(capacity);
-						foreach (object obj in Regex.Matches(value, "\\[(?<Type>.*?)\\],?"))
-						{
-							Match match2 = (Match)obj;
-							if (match2.Success)
-							{
-								list.Add(match2.Groups["Type"].Value.Trim());
-							}
-						}
-						Type[] array = new Type[list.Count];
-						for (int i = 0; i < list.Count; i++)
-						{
-							Type type2;
-							if (!TryGetMixedAssemblyGenericType(list[i], out type2))
-							{
-								return false;
-							}
-							array[i] = type2;
-						}
-						Type type3;
-						if (TryGetMixedAssemblyGenericType(match.Groups["MainType"].Value, out type3))
-						{
-							type = type3.MakeGenericType(array);
-						}
-					}
-				}
-				catch (Exception ex)
-				{
-					Debug.LogError(string.Concat(new object[]
-					{
-						"Error in TryGetMixedAssemblyGenericType with typeName=",
-						typeName,
-						": ",
-						ex
-					}));
-				}
-			}
-			return type != null;
-		}
-    public static Type GetTypeInAnyAssemblyRaw(string typeName)
+    public static long ParseLong(string str)
     {
-        Type type = SimpleGetType(typeName);
-        if(type != null)
-        {
-            return type;
-        }
-
-        foreach(Assembly assembly in AllActiveAssemblies)
-        {
-            Type type2 = assembly.GetType(typeName, false, true);
-            if (type2 != null)
-            {
-                return type2;
-            }
-        }
-        Type type3 = Type.GetType(typeName, false, true);
-        if (type3 != null)
-        {
-            return type3;
-        }
-        return null;
+        return long.Parse(str, CultureInfo.InvariantCulture);
     }
-
-    public static Type SimpleGetType(string typeName)
+    public static double ParseDouble(string str)
     {
-        switch (typeName)
-        {
-            case "System.String":
-                return typeof(string);
-            case "System.Int32":
-                return typeof(int);
-            case "System.Boolean":
-                return typeof(bool);
-            case "System.Single":
-                return typeof(float);
-            case "System.Double":
-                return typeof(double);
-            case "System.Char":
-                return typeof(char);
-            case "System.Byte":
-                return typeof(byte);
-            case "System.SByte":
-                return typeof(sbyte);
-            case "System.Int16":
-                return typeof(short);
-            case "System.UInt16":
-                return typeof(ushort);
-            case "System.UInt32":
-                return typeof(uint);
-            case "System.Int64":
-                return typeof(long);
-            case "System.UInt64":
-                return typeof(ulong);
-            case "System.Decimal":
-                return typeof(decimal);
-            
-            case "string":
-                return typeof(string);
-            case "int":
-                return typeof(int);
-            case "bool":
-                return typeof(bool);
-            case "float":
-                return typeof(float);
-            case "double":
-                return typeof(double);
-            case "char":
-                return typeof(char);
-            case "byte":
-                return typeof(byte);
-            case "sbyte":
-                return typeof(sbyte);
-            case "short":
-                return typeof(short);
-            case "ushort":
-                return typeof(ushort);
-            case "uint":
-                return typeof(uint);
-            case "long":
-                return typeof(long);
-            case "ulong":
-                return typeof(ulong);
-            case "decimal":
-                return typeof(decimal);
-            
-            case "byte?":
-                return typeof(byte?);
-            case "sbyte?":
-                return typeof(sbyte?);
-            case "short?":
-                return typeof(short?);
-            case "ushort?":
-                return typeof(ushort?);
-            case "int?":
-                return typeof(int?);
-            case "uint?":
-                return typeof(uint?);
-            case "long?":
-                return typeof(long?);
-            case "ulong?":
-                return typeof(ulong?);
-            case "float?":
-                return typeof(float?);
-            case "double?":
-                return typeof(double?);
-            case "decimal?":
-                return typeof(decimal?);
-            case "char?":
-                return typeof(char?);
-            case "bool?":
-                return typeof(bool?);
-        }
-        return null;
+        return double.Parse(str, CultureInfo.InvariantCulture);
     }
-
-    private static IEnumerable<Assembly> AllActiveAssemblies
+    public static sbyte ParseSByte(string str)
     {
-        get
-        {
-            yield return Assembly.GetExecutingAssembly();
-            foreach (ModContentPack mod in ModEngineLoader.modsLoaded)
-            {
-                int num;
-                for (int i = 0; i < mod.modAssembly.loadedAssemblies.Count; i = num + 1)
-                {
-                    yield return mod.modAssembly.loadedAssemblies[i];
-                    num = i;
-                }
-            }
-            yield break;
-        }
+        return sbyte.Parse(str, CultureInfo.InvariantCulture);
     }
-
-    public static void ClearCache()
+    public static int ParseInt(string str)
     {
-        cachedSubclasses.Clear();
-        cachedSubclassesNonAbstract.Clear();
-        AllTypes = null;
+        return int.Parse(str);
     }
-    
-    public static List<Type> AllTypes;
-    public static Dictionary<string, Type> typeCache = new Dictionary<string, Type>();
-    private static Dictionary<Type, List<Type>> cachedSubclasses = new Dictionary<Type, List<Type>>();
-	private static Dictionary<Type, List<Type>> cachedSubclassesNonAbstract = new Dictionary<Type, List<Type>>();
-    public static readonly List<string> IgnoredNamespaceNames = new List<string>
+    public static bool ParseBool(string str)
     {
-        "System"
-    };
+        return bool.Parse(str);
+    }
 }

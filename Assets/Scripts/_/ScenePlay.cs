@@ -8,7 +8,8 @@ public class ScenePlay : SceneAbstract
     {
         base.Start();
          
-        ModEngineConfig.Process();
+        ModEngineConfig.Init();
+        ModEngineLoader.LoadModProcess();
     }
 
     // Update is called once per frame

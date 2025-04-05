@@ -1,0 +1,80 @@
+<Data>
+   <ToolQuality id="HAMMER">
+      <name>hammering quality</name>
+   </ToolQuality>
+   <ToolQuality id="PRY">
+      <name>prying quality</name>
+   </ToolQuality>
+   <ToolQuality id="SAW_WOOD">
+      <name>wood sawing quality</name>
+   </ToolQuality>
+   <ToolQuality id="SAW_METAL">
+      <name>metal sawing quality</name>
+   </ToolQuality>
+   <ToolQuality id="COOK">
+      <name>food cooking quality</name>
+   </ToolQuality>
+   <ToolQuality id="BOIL">
+      <name>liquid boiling quality</name>
+   </ToolQuality>
+   <ToolQuality id="AXE">
+      <name>tree cutting quality</name>
+   </ToolQuality>
+   <ToolQuality id="DIG">
+      <name>digging quality</name>
+   </ToolQuality>
+   <ToolQuality id="MINE">
+      <name>mining quality</name>
+   </ToolQuality>
+   <ToolQuality id="WRENCH">
+      <name>bolt screwing quality</name>
+   </ToolQuality>
+   <ToolQuality id="SCREW">
+      <name>screw screwing quality</name>
+   </ToolQuality>
+   <ToolQuality id="CHISEL">
+      <name>chiseling quality</name>
+   </ToolQuality>
+   <ToolQuality id="LIFT">
+      <name>lifting quality</name>
+   </ToolQuality>
+   <ToolQuality id="LOCKPICK">
+      <name>lockpicking quality</name>
+   </ToolQuality>
+   <ToolQuality id="SMOOTH">
+      <name>smoothing quality</name>
+   </ToolQuality>
+   <ToolQuality id="SEW">
+      <name>sewing quality</name>
+   </ToolQuality>
+   <ToolQuality id="FABRIC_CUT">
+      <name>fabric cutting quality</name>
+   </ToolQuality>
+   <ToolQuality id="GLARE">
+      <name>glare protection quality</name>
+   </ToolQuality>
+   <ToolQuality id="FILTER">
+      <name>filtration quality</name>
+   </ToolQuality>
+   <ToolQuality id="FILER">
+      <name>filing quality</name>
+   </ToolQuality>
+   <ToolQuality id="GRIND">
+      <name>grinding quality</name>
+   </ToolQuality>
+   <ToolQuality id="CLEAN">
+      <name>cleaning quality</name>
+   </ToolQuality>
+   <ToolQuality id="SMITH">
+      <name>smithing quality</name>
+   </ToolQuality>
+   <ToolQuality id="CUT">
+      <name>cut quality</name>
+   </ToolQuality>
+   <ToolQuality id="BLUNT">
+      <name>blunt quality</name>
+   </ToolQuality>
+   <ToolQuality id="STAB">
+      <name>stab quality</name>
+   </ToolQuality>
+</Data>
