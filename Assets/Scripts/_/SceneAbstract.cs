@@ -9,7 +9,7 @@ public abstract class SceneAbstract : MonoBehaviour
     }
     public virtual void Start()
     {
-        
+        CurrentGame.GlobalNotifyChangedScene();
     }
  
     public virtual void Update()
