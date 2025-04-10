@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -6,24 +7,22 @@ public class OverWorldManager
 {
     public OverworldData world;
     private Dictionary<Vector2Int, Chunk> loadedChunks = new Dictionary<Vector2Int, Chunk>();
-    public OverworldData CreateWorld(string name, string seed)
+    public void CreateWorld(OverworldData data,string seed)
     {
         int seedInt = OverworldData.GetHashSeed(seed);
         GenRandom.SetSeed((uint)seedInt);
-        OverworldData world = new OverworldData
-        {
-            name = name,
-            seed = seedInt,
-        };
-        return world;
+        // OverworldData world = new OverworldData
+        // {
+        //     name = name,
+        //     seed = seedInt,
+        // };
+        
+        //CurrentGame.setWorld = world;
+        //ALERT: Test
+        CurrentGame.setWorld = data;
     }
-    public void UpdateChunks(Vector2 playerPos,GameObject prefab)
+    public void UpdateChunks(Vector2Int playerChunkPos,GameObject prefab)
     {
-        Vector2Int playerChunkPos = new Vector2Int(
-            Mathf.FloorToInt(playerPos.x / OverworldData.chunkSize),
-            Mathf.FloorToInt(playerPos.y / OverworldData.chunkSize)
-        );
-
         // Load chunk quanh player
         for (int dx = -OverworldData.cachedSize; dx <= OverworldData.cachedSize; dx++)
         {
@@ -32,7 +31,7 @@ public class OverWorldManager
                 Vector2Int pos = playerChunkPos + new Vector2Int(dx, dy);
                 if (!loadedChunks.ContainsKey(pos))
                 {
-                    LoadOrGenerateChunkAsync(pos,prefab);
+                    LoadOrGenerateChunk(pos,prefab);
                 }
             }
         }
@@ -49,14 +48,27 @@ public class OverWorldManager
         }
         foreach (var pos in toRemove)
         {
-            GameObject.DestroyImmediate(loadedChunks[pos].gameObject);
+            loadedChunks[pos].gameObject.SetActive(false);
+            //GameObject.DestroyImmediate(loadedChunks[pos].gameObject);
             loadedChunks.Remove(pos);
         }
     }
 
-    private void LoadOrGenerateChunkAsync(Vector2Int pos,GameObject prefab)
+    private void LoadOrGenerateChunk(Vector2Int pos,GameObject prefab)
     {
-        Chunk chunk = new GameObject().AddComponent<Chunk>();;
+        Chunk chunk;
+        chunk = GameObject.FindObjectsByType<Chunk>(FindObjectsSortMode.None).Where(x => x.name == $"Chunk:{pos.x}_{pos.y}").FirstOrDefault();
+        if(chunk != null)
+        {
+            if(chunk.gameObject.activeSelf)
+            {
+                return;
+            }
+            loadedChunks[pos] = chunk;
+            chunk.gameObject.SetActive(true);
+            return;
+        }
+        chunk = new GameObject().AddComponent<Chunk>();;
         chunk.Init(pos);
         bool loaded = chunk.LoadChunk();
         if (!loaded)

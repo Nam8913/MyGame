@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Tile
+public class TileObj : MonoBehaviour
 {
-    public int height = 0;
+    public float height = 0;
 }

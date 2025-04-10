@@ -1,0 +1,72 @@
+<Data>
+    <CategoryTag>
+        <name>Weapons</name>
+    </CategoryTag>
+    <CategoryTag>
+        <name>Ranger</name>
+    </CategoryTag>
+    <CategoryTag>
+        <name>Magazines</name>
+    </CategoryTag>
+    <CategoryTag>
+        <name>Ammo</name>
+    </CategoryTag>
+    <CategoryTag>
+        <name>Tools</name>
+    </CategoryTag>
+    <CategoryTag>
+        <name>Clothing</name>
+    </CategoryTag>
+    <CategoryTag>
+        <name>Armor</name>
+    </CategoryTag>
+    <CategoryTag>
+        <name>Raw food</name>
+    </CategoryTag>
+    <CategoryTag>
+        <name>Food</name>
+    </CategoryTag>
+    <CategoryTag>
+        <name>Drink</name>
+    </CategoryTag>
+    <CategoryTag>
+        <name>Medical</name>
+    </CategoryTag>
+    <CategoryTag>
+        <name>Manuals</name>
+    </CategoryTag>
+    <CategoryTag>
+        <name>Books</name>
+    </CategoryTag>
+    <CategoryTag>
+        <name>Ranger Mods</name>
+    </CategoryTag>
+    <CategoryTag>
+        <name>Currency</name>
+    </CategoryTag>
+    <CategoryTag>
+        <name>Vehicle parts</name>
+    </CategoryTag>
+    <CategoryTag>
+        <name>Others</name>
+    </CategoryTag>
+    <CategoryTag>
+        <name>Fuels</name>
+    </CategoryTag>
+    <CategoryTag>
+        <name>Seeds</name>
+    </CategoryTag>
+    <CategoryTag>
+        <name>Traps</name>
+    </CategoryTag>
+    <CategoryTag>
+        <name>Buildings</name>
+    </CategoryTag>
+    <CategoryTag>
+        <name>Artifacts</name>
+    </CategoryTag>
+    <CategoryTag>
+        <name>Corpses</name>
+    </CategoryTag>
+    
+</Data>

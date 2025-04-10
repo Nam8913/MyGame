@@ -7,9 +7,13 @@ public abstract class SceneAbstract : MonoBehaviour
     {
 
     }
-    public virtual void Start()
+    public void Awake()
     {
         CurrentGame.GlobalNotifyChangedScene();
+    }
+    public virtual void Start()
+    {
+        
     }
  
     public virtual void Update()

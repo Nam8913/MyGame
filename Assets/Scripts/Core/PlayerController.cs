@@ -2,6 +2,11 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    private bool chunkUpdate = false;
+    public Vector2Int playerChunkPos;
+
+    public OverworldData data;
+
     public GameObject gamePrefab;
     public float speed = 5f;  
     OverWorldManager worldManager;
@@ -11,13 +16,22 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         worldManager = new OverWorldManager();
-        worldManager.CreateWorld("TestWorld", "TestSeed");
+        worldManager.CreateWorld(data, "TestSeed");
         rb = GetComponent<Rigidbody2D>();
     }
 
     void Update()
     {
-        worldManager.UpdateChunks(this.transform.position,gamePrefab);
+        if(Chunk.GetChunk(this.transform.position) != playerChunkPos || !chunkUpdate)
+        {
+            if(!chunkUpdate)
+            {
+                chunkUpdate = true;
+            }
+            playerChunkPos = Chunk.GetChunk(this.transform.position);
+            worldManager.UpdateChunks(playerChunkPos,gamePrefab);
+        }
+        
 
         
         Move();

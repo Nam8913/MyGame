@@ -2,6 +2,9 @@
    <ToolQuality id="HAMMER">
       <name>hammering quality</name>
    </ToolQuality>
+   <ToolQuality id="SOFT_HAMMER">
+      <name>soft hammering quality</name>
+   </ToolQuality>
    <ToolQuality id="PRY">
       <name>prying quality</name>
    </ToolQuality>

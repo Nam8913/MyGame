@@ -28,6 +28,30 @@ public static class CurrentGame
         }
     }
 
+    public static ScenePlay GetScenePlay
+    {
+        get
+        {
+            if (playScene == null)
+            {
+                Debug.LogError("Not in scene play in the current game.");
+            }
+            return playScene;
+        }
+    }
+    public static SceneEntry GetSceneEntry
+    {
+        get
+        {
+            if (entryScene == null)
+            {
+                Debug.LogError("Not in scene entry in the current game.");
+            }
+            return entryScene;
+        }
+    }
+
+
     private static void TryGetSceneObject()
     {
         if(InEntryScene)
@@ -63,10 +87,10 @@ public static class CurrentGame
         }
     }
 
-    public static SceneAbstract currScene;
-    public static ScenePlay playScene;
-    public static SceneEntry entryScene;
-    public static OverworldData worldData;
+    private static SceneAbstract currScene;
+    private static ScenePlay playScene;
+    private static SceneEntry entryScene;
+    private static OverworldData worldData;
 
     private static readonly List<string> sceneNames = new List<string>()
     {
@@ -84,7 +108,7 @@ public static class CurrentGame
     {
         get
         {
-            return SceneManager.GetActiveScene().name == "Entry";
+            return SceneManager.GetActiveScene().name == "Play";
         }
     }
 }
