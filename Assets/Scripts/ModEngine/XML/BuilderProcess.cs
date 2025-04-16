@@ -241,29 +241,29 @@ public static class BuilderProcess
                             {
                                 Debug.LogError($"Failed to create default constructor for {field.Name} \n {ex.Message}");
                             }
-                            
-                            if(CanOrderProcess(field.FieldType))
+
+
+                            string str = child.InnerText;
+                            if (string.IsNullOrEmpty(str))
                             {
-                                BuilderProcessDeserialize builder = GetBuilderForType(field.FieldType,child);
-                                prc.AddChild(builder);
-                                builder.Invoke();
+                                str = child.Attributes["value"]?.Value;
+                            }
+                            if(CanSimpleParser(field.FieldType))
+                            {
+                                var value = TypePatch.HelpParseType(str, field.FieldType);
+                                obj.GetType().GetField(child.Name).SetValue(obj, value);
                             }else
                             {
-                                if(child.InnerText != null)
+                                if(CanOrderProcess(field.FieldType))
                                 {
-                                    
-                                    var value = Convert.ChangeType(child.InnerText, field.FieldType);
-                                    obj.GetType().GetField(child.Name).SetValue(obj, value);
-                                }else if(child.Attributes["value"].Value != null)
-                                {
-                                    //<fieldName value = "valueData"></fieldName>
-                                    var value = Convert.ChangeType(child.Attributes["value"].Value, field.FieldType);
-                                    obj.GetType().GetField(child.Name).SetValue(obj, value);
+                                    BuilderProcessDeserialize builder = GetBuilderForType(field.FieldType,child);
+                                    prc.AddChild(builder);
+                                    builder.Invoke();
                                 }
                             }
                         }else
                         {
-                            Debug.LogError("Invalid name node:" + child.Name + " for get field in type object: " + obj.GetType().FullName);
+                            Debug.LogError("Invalid name node:" + child.Name + " with value [" + child.OuterXml + "] for get field in type object: " + obj.GetType().FullName);
                             continue;
                         }
                         
@@ -280,7 +280,7 @@ public static class BuilderProcess
                     FieldInfo field = obj.GetType().GetField(attr.Name);
                     if(field != null)
                     {
-                        var value = Convert.ChangeType(attr.Value, field.FieldType);
+                        var value = TypePatch.HelpParseType(attr.Value, field.FieldType);
                         var old = field.GetValue(obj);
                         bool flag = old != null ? true : false;
                         if(flag)
@@ -410,6 +410,10 @@ public static class BuilderProcess
             return null;
         }
         //string name = type.ToString().Split('+').Last();
+        if(xmlNode.Attributes["class"] != null)
+        {
+            type = GenTypes.GetTypeInAnyAssembly(xmlNode.Attributes["class"].Value,xmlNode.Attributes["namespace"]?.InnerText);
+        }
         string name = GetOrderWith(type);
        if (ProcessOrder.TryGetValue(name, out var processor))
         {
@@ -432,6 +436,11 @@ public static class BuilderProcess
     {
         string name = GetOrderWith(type);
         return ProcessOrder.ContainsKey(name);
+    }
+    public static bool CanSimpleParser(System.Type type)
+    {
+        bool rs = GenTypes.SimpleGetType(type.Name) != null;
+        return rs;
     }
     private static string GetOrderWith(System.Type type)
     {

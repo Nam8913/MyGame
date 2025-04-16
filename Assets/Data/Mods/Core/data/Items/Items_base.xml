@@ -1,0 +1,34 @@
+<Data>
+    <ItemData id = "item_wood">
+      <name>Wood</name>
+      <maxStack>100</maxStack>
+      <tags>
+        <li>Material</li>
+        <li>Combustible</li>
+      </tags>
+      <graphicType class ="GraphicSingleType">
+        <path></path>
+        <texture x="0" y="0" w="64" h="64" pixelPerUnit="100" pivot="(0.5, 0.5)"></texture>
+      </graphicType>
+    </ItemData>
+  
+    <ItemData id = "item_stone">
+      <name>Stone</name>
+      <maxStack>100</maxStack>
+      <tags>
+        <li>Material</li>
+        <li>Solid</li>
+      </tags>
+    </ItemData>
+  
+    <ItemData id = "item_scrap_metal">
+      <name>Scrap Metal</name>
+      <maxStack>50</maxStack>
+      <destroyable>true</destroyable>
+      <tags>
+        <li>Material</li>
+        <li>Solid</li>
+        <li>Metal</li>
+      </tags>
+    </ItemData>
+  </Data>

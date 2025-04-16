@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
 using UnityEngine;
+[System.Serializable]
 public class ModInfor
 {
     public string name = "Unamed_Mod";

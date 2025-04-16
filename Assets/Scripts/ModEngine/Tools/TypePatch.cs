@@ -75,24 +75,44 @@ public static class TypePatch
         return false;
     }
 
-    public static object HelpChangeType(string value, Type targetType)
+    public static object HelpParseType(string str, Type targetType)
     {
         object rs = null;
         try
         {
-            rs = Convert.ChangeType(value, targetType);
+            rs = ParseSimpleValue(str, targetType);
+            if(rs != null) return rs;
+            rs = Convert.ChangeType(str, targetType);
         }
         catch (InvalidCastException invalidCast)
         {
-            Debug.LogError($"Can't convert {value} to {targetType.Name}");
+            Debug.LogError($"Can't convert {str} to {targetType.Name}");
         }
         catch (System.Exception ex)
         {
-            Debug.LogError($"Can't convert {value} to {targetType.Name}: {ex.Message}");
+            Debug.LogError($"Can't convert {str} to {targetType.Name}: {ex.Message}");
             Debug.LogError(ex.StackTrace);
             throw;
         } 
         return rs;
+    }
+    public static object ParseSimpleValue(string str, Type type)
+    {
+        if (type == typeof(string)) return str;
+        if (type == typeof(float)) return ParseFloat(str);
+        if (type == typeof(long)) return ParseLong(str);
+        if (type == typeof(double)) return ParseDouble(str);
+        if (type == typeof(sbyte)) return ParseSByte(str);
+        if (type == typeof(int)) return ParseInt(str);
+        if (type == typeof(bool)) return ParseBool(str);
+        if (type == typeof(Vector2Int)) return ParseIntVec2(str);
+        if (type == typeof(Vector2)) return ParseVec2(str);
+        if (type == typeof(Vector3)) return ParseVec3(str);
+        if (type == typeof(Vector4)) return ParseIntVec3(str);
+        if (type.IsEnum) return Enum.Parse(type, str, true);
+
+        //Debug.LogError($"Type '{type.Name}' không được hỗ trợ cho việc phân tích cú pháp.");
+        return null;
     }
     public static Type ParseType(string str)
     {
@@ -130,5 +150,41 @@ public static class TypePatch
     public static bool ParseBool(string str)
     {
         return bool.Parse(str);
+    }
+    public static Vector2Int ParseIntVec2(string str)
+    {
+        string[] parts = str.Trim('(', ')').Split(',');
+        if (parts.Length == 2 && int.TryParse(parts[0], out int x) && int.TryParse(parts[1], out int y))
+        {
+            return new Vector2Int(x, y);
+        }
+        throw new FormatException($"Invalid format for Vector2Int: {str}");
+    }
+    public static Vector2 ParseVec2(string str)
+    {
+        string[] parts = str.Trim('(', ')').Split(',');
+        if (parts.Length == 2 && float.TryParse(parts[0], out float x) && float.TryParse(parts[1], out float y))
+        {
+            return new Vector2(x, y);
+        }
+        throw new FormatException($"Invalid format for Vector2: {str}");
+    }
+    public static Vector3 ParseVec3(string str)
+    {
+        string[] parts = str.Trim('(', ')').Split(',');
+        if (parts.Length == 3 && float.TryParse(parts[0], out float x) && float.TryParse(parts[1], out float y) && float.TryParse(parts[2], out float z))
+        {
+            return new Vector3(x, y, z);
+        }
+        throw new FormatException($"Invalid format for Vector3: {str}");
+    }
+    public static Vector4 ParseIntVec3(string str)
+    {
+        string[] parts = str.Trim('(', ')').Split(',');
+        if (parts.Length == 3 && int.TryParse(parts[0], out int x) && int.TryParse(parts[1], out int y) && int.TryParse(parts[2], out int z))
+        {
+            return new Vector3(x, y, z);
+        }
+        throw new FormatException($"Invalid format for Vector3: {str}");
     }
 }

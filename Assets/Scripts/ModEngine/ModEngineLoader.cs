@@ -75,7 +75,7 @@ public static class ModEngineLoader
                     ex
                 }));
             }
-        }   
+        }  
     }
 
     private static List<FileInfo> LoadModsData()

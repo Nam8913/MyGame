@@ -5,8 +5,6 @@ using UnityEngine;
 [System.Serializable]
 public class TextureData : Data
 {
-    public string path;
-
     public int x;
     public int y;
     public int w;//width

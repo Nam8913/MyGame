@@ -9,7 +9,7 @@ public class Database : MonoBehaviour , IDisposable
     public List<Type> dataListType = new List<Type>();
     [SerializeField]
     private List<Data> showData;
-    public Dictionary<string, Data> database = new Dictionary<string, Data>();
+    public Dictionary<string, Data> databaseById = new Dictionary<string, Data>();
     public void Update()
     {
         if(showData == null)
@@ -19,7 +19,7 @@ public class Database : MonoBehaviour , IDisposable
         {
             showData.Clear();
         }
-        foreach (var type in database.Values)
+        foreach (var type in databaseById.Values)
         {
             showData.Add(type);
         }
@@ -30,7 +30,7 @@ public class Database : MonoBehaviour , IDisposable
     }
     public static Dictionary<string, Data> DatabaseDic
     {
-        get { return Singleton<Database>.Instance.database; }
+        get { return Singleton<Database>.Instance.databaseById; }
     }
     public static List<Type> Datas
     {
@@ -38,19 +38,19 @@ public class Database : MonoBehaviour , IDisposable
     }
     public static bool isDataType (string key)
     {
-        return GetDatabase.database.ContainsKey(key);
+        return GetDatabase.databaseById.ContainsKey(key);
     }
     public static Data GetData (string key)
     {
-        return GetDatabase.database[key];
+        return GetDatabase.databaseById[key];
     }
     public static void AddData (string key, Data data)
     {
-        GetDatabase.database.TryAdd(key, data);
+        GetDatabase.databaseById.TryAdd(key, data);
     }
     public static void RemoveData (string key)
     {
-        GetDatabase.database.Remove(key);
+        GetDatabase.databaseById.Remove(key);
     }
     public void Dispose()
     {
@@ -62,6 +62,6 @@ public class Database : MonoBehaviour , IDisposable
             }
         }
         dataListType.Clear();
-        database.Clear();
+        databaseById.Clear();
     }
 }

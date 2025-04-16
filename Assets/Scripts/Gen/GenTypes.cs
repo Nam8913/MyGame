@@ -156,6 +156,35 @@ public static class GenTypes
                 return typeof(ulong);
             case "System.Decimal":
                 return typeof(decimal);
+
+            case "String":
+                return typeof(string);
+            case "Int32":
+                return typeof(int);
+            case "Boolean":
+                return typeof(bool);
+            case "Single":
+                return typeof(float);
+            case "Double":
+                return typeof(double);
+            case "Char":
+                return typeof(char);
+            case "Byte":
+                return typeof(byte);
+            case "SByte":
+                return typeof(sbyte);
+            case "Int16":
+                return typeof(short);
+            case "UInt16":
+                return typeof(ushort);
+            case "UInt32":
+                return typeof(uint);
+            case "Int64":
+                return typeof(long);
+            case "UInt64":
+                return typeof(ulong);
+            case "Decimal":
+                return typeof(decimal);
             
             case "string":
                 return typeof(string);
@@ -212,6 +241,21 @@ public static class GenTypes
                 return typeof(char?);
             case "bool?":
                 return typeof(bool?);
+            
+            case "Vector2":
+            return typeof(Vector2);
+            case "Vector3":
+            return typeof(Vector3);
+            case "Vector4":
+            return typeof(Vector4);
+            case "Vector2Int":
+            return typeof(Vector2Int);
+            case "Vector3Int":
+            return typeof(Vector3Int);
+            case "Color":
+            return typeof(Color);
+            case "Color32":
+            return typeof(Color32);
         }
         return null;
     }

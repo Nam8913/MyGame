@@ -448,6 +448,7 @@ MonoBehaviour:
     amplitude: 1
   gamePrefab: {fileID: 1588080579461882894, guid: 26cd908e02f4cf3469e725926710bfb2, type: 3}
   speed: 5
+  playerCamera: {fileID: 0}
 --- !u!4 &1674564856
 Transform:
   m_ObjectHideFlags: 0

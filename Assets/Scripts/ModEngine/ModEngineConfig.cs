@@ -14,7 +14,6 @@ public static class ModEngineConfig
         BuilderProcess.Init();
         string path = (Path.Combine(FoulderGen.ConfigDir, CONFIG_FILE_NAME));
         data = DirectXmlLoader.ProcessLoadFromXmlFile<ModConfigData>(path);
-        TypePatch.PrintObjectInfo(data);
         if(data == null)
         {
             File.Delete(path);

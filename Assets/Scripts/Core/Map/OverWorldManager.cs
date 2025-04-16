@@ -60,11 +60,11 @@ public class OverWorldManager
         chunk = GameObject.FindObjectsByType<Chunk>(FindObjectsSortMode.None).Where(x => x.name == $"Chunk:{pos.x}_{pos.y}").FirstOrDefault();
         if(chunk != null)
         {
+            loadedChunks[pos] = chunk;
             if(chunk.gameObject.activeSelf)
             {
                 return;
             }
-            loadedChunks[pos] = chunk;
             chunk.gameObject.SetActive(true);
             return;
         }
