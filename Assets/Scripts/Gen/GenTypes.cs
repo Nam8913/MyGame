@@ -12,7 +12,7 @@ public static class GenTypes
         get
         {
             yield return Assembly.GetExecutingAssembly();
-            foreach (ModContentPack mod in ModEngineLoader.modActive)
+            foreach (ModContentPack mod in ModEngineLoader.GetAllModContentPack())
             {
                 int num;
                 for (int i = 0; i < mod.modAssembly.loadedAssemblies.Count; i = num + 1)
@@ -87,14 +87,14 @@ public static class GenTypes
     }
     public static bool IsData(Type type)
     {
-        Type result = Database.Datas.Find(f => f == type);
+        Type result = DataStorage.Datas.Find(f => f == type);
         if (result != null)
         {
             return true;
         }
         bool flag = typeof(Data).IsAssignableFrom(type);
         if(flag)
-        Database.Datas.Add(type);
+        DataStorage.Datas.Add(type);
         return flag;
     }
 

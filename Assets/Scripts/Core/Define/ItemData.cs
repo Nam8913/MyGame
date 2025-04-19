@@ -19,7 +19,6 @@ public class ItemData : BuildableData
     public bool rotatable = true;
     public bool canBeUsedUnderRoof = true;
 
-    public List<string> tags;
     public ToolQuality toolQuality;
 
     public List<RecipeData> recipes;

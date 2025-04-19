@@ -39,7 +39,7 @@ public class Chunk : MonoBehaviour
                 obj.transform.position = new Vector3(localX + x, localY + y, 0);
                 TileObj tile = obj.AddComponent<TileObj>();
                 tile.height = heightMap[x, y];
-                GameObject SpriteObj = Instantiate(prefab, new Vector3(localX + x, localY + y, 0), Quaternion.identity);
+                GameObject SpriteObj = Instantiate(prefab, new Vector3(localX + x, localY + y, 0.001f), Quaternion.identity);
                 SpriteObj.transform.parent = obj.transform;
                 obj.transform.parent = chunk.transform;
 

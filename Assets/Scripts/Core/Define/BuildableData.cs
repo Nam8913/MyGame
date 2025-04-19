@@ -7,6 +7,7 @@ using UnityEngine;
 public class BuildableData : Data
 {
     public string entityClass = "Entity";
+    public List<string> comps;
 
     public GraphicType graphicType;
 

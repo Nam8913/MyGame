@@ -73,9 +73,14 @@ public class ModContentPack
         //audioAssets = new Dictionary<string,AudioClip>();
 
         textureAssets = getTextureFiles().ToDictionary(
-            file => file,
+            file => file.Replace(Path.Combine(directoryInfo.FullName, ModInfor.modTextureDir + "\\"), ""),
             file => ModEngineLoader.LoadItem<Texture2D>(file)
         );
+
+        foreach (var texture in textureAssets)
+        {
+            TextureStorage.GetDatabase.AddTexture(texture.Key, texture.Value);
+        }
 
         stringAssets = GetStringFiles().ToDictionary(
             file => file,

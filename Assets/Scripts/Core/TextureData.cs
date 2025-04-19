@@ -11,4 +11,6 @@ public class TextureData : Data
     public int h;//height
     public int pixelPerUnit;
     public Vector2 pivot;
+
+    public float frameRate; // for animated textures
 }

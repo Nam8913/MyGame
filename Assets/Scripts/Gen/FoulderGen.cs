@@ -46,10 +46,28 @@ public static class FoulderGen
     public static string modsDir => FoulderInDataDir(modsDirName);
     public static string ConfigDir => FoulderInDataDir(configDirName);
 
+    //not in resources folder
     public const string modsDirName = "Mods";
     public const string configDirName = "Config";
+    // In resources folder
     public const string textureDirName = "Textures";
     public const string materialDirName = "Materials";
     public const string soundDirName = "Sounds";
     public const string localizationDirName = "Languages";
+
+    //get foulder in resources folder
+    public static string FoulderInResourcesDir(string directory)
+    {
+        string text = Path.Combine(Application.dataPath, "Resources", directory);
+        DirectoryInfo directoryInfo = new DirectoryInfo(text);
+        if (!directoryInfo.Exists)
+        {
+            directoryInfo.Create();
+        }
+        return text;
+    }
+    public static string TextureDir => FoulderInResourcesDir(textureDirName);
+    public static string MaterialDir => FoulderInResourcesDir(materialDirName);
+    public static string SoundDir => FoulderInResourcesDir(soundDirName);
+    public static string LocalizationDir => FoulderInResourcesDir(localizationDirName);
 }

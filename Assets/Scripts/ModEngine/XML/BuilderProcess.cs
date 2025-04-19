@@ -171,22 +171,36 @@ public static class BuilderProcess
                     {
                         if(prc.parent != null)
                         {
-                            if(!string.IsNullOrEmpty(nodeValue.InnerText))
+                            string str = nodeValue.InnerText;
+                            if (string.IsNullOrEmpty(str))
                             {
-                                addMethod.Invoke(list,new object[]{nodeValue.InnerText});
-                            }else if(nodeValue.Attributes.Count != 0)
-                            {
-                                if(nodeValue.Attributes.Count != 1)
+                                str = nodeValue.Attributes["value"]?.Value;
+                                if(string.IsNullOrEmpty(str))
                                 {
-                                    Debug.LogError(string.Concat("Invalid child node attributes, expected 1 attribute, but got: "
-                                    ,nodeValue.Attributes.Count
-                                    , "and by default the node will take the first attributes value \n"
-                                    ,nodeValue.Name
-                                    ,": "
-                                    ,nodeValue.Attributes[0].Value));
+                                    if(nodeValue.Attributes.Count != 0)
+                                    {
+                                        if(nodeValue.Attributes.Count != 1)
+                                        {
+                                            Debug.LogError(string.Concat("Invalid child node attributes, expected 1 attribute, but got: "
+                                            ,nodeValue.Attributes.Count
+                                            , "and by default the node will take the first attributes value \n"
+                                            ,nodeValue.Name
+                                            ,": "
+                                            ,nodeValue.Attributes[0].Value));
+                                        }
+                                        str = nodeValue.Attributes[0].Value;
+                                    }
                                 }
-                                addMethod.Invoke(list,new object[]{nodeValue.Attributes[0].Value});
+                                
+                                if(string.IsNullOrEmpty(str))
+                                {
+                                    Debug.LogError("Invalid child node value, expected a value or attribute, but got: " + nodeValue.OuterXml);
+                                    return;
+                                }
                             }
+                            object value = TypePatch.HelpParseType(str, Otype.GetGenericArguments()[0]);
+                            addMethod.Invoke(list, new object[] { value });
+                           
                         }else
                         {
                             Debug.LogError("Parent is null, cannot add dataFields.");
@@ -194,6 +208,30 @@ public static class BuilderProcess
                         }
                     }else
                     {
+                        //make exception for node with only 1 child node that could be without <li> node
+                        if(nodeHolder.ChildNodes.Count == 1)
+                        {
+                            if(prc.parent != null)
+                            {
+                                string str = nodeValue.InnerText;
+                                if (string.IsNullOrEmpty(str))
+                                {
+                                    str = nodeValue.Attributes["value"]?.Value;
+                                    if(string.IsNullOrEmpty(str))
+                                    {
+                                        Debug.LogError("Invalid child node value, expected a value or attribute, but got: " + nodeValue.OuterXml);
+                                        return;
+                                    }
+                                }
+                                object value = TypePatch.HelpParseType(str, Otype.GetGenericArguments()[0]);
+                                addMethod.Invoke(list, new object[] { value });
+                            }else
+                            {
+                                Debug.LogError("Parent is null, cannot add dataFields.");
+                                return;
+                            }
+                        }
+
                         Debug.LogError("Invalid child node type, expected 'li', but got: " + nodeValue.Name);
                     }
                 }
@@ -320,13 +358,13 @@ public static class BuilderProcess
                     string key = data.id;
                     if(!string.IsNullOrEmpty(key))
                     {
-                        if(!Database.DatabaseDic.ContainsKey(key))
+                        if(!DataStorage.DatabaseDic.ContainsKey(key))
                         {
-                            Database.AddData(key, (Data)obj);
+                            DataStorage.AddData(key, (Data)obj);
                         }else
                         {
-                            Database.RemoveData(key);
-                            Database.AddData(key, (Data)obj);
+                            DataStorage.RemoveData(key);
+                            DataStorage.AddData(key, (Data)obj);
                         }
                     }
                     

@@ -35,7 +35,10 @@ public class Singleton<T> : MonoBehaviour where T : MonoBehaviour , IDisposable
 					}
 				}
 				result = Singleton<T>.m_Instance;
+				UnityEngine.Object.DontDestroyOnLoad(Singleton<T>.m_Instance);
 			}
+			 
+			Singleton<T>.m_Instance.transform.SetParent(CurrentGame.getSingletonObject.transform);
 			return result;
 		}
 	}

@@ -2,15 +2,14 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Database : MonoBehaviour , IDisposable
+public class DataStorage : Database<DataStorage> , IDisposable
 {
-    public string test;
     [SerializeField]
     public List<Type> dataListType = new List<Type>();
     [SerializeField]
     private List<Data> showData;
     public Dictionary<string, Data> databaseById = new Dictionary<string, Data>();
-    public void Update()
+    public void OnGUI()
     {
         if(showData == null)
         {
@@ -24,17 +23,17 @@ public class Database : MonoBehaviour , IDisposable
             showData.Add(type);
         }
     }
-    public static Database GetDatabase
+    public static DataStorage GetDatabase
     {
-        get { return Singleton<Database>.Instance; }
+        get { return Singleton<DataStorage>.Instance; }
     }
     public static Dictionary<string, Data> DatabaseDic
     {
-        get { return Singleton<Database>.Instance.databaseById; }
+        get { return Singleton<DataStorage>.Instance.databaseById; }
     }
     public static List<Type> Datas
     {
-        get { return Singleton<Database>.Instance.dataListType; }
+        get { return Singleton<DataStorage>.Instance.dataListType; }
     }
     public static bool isDataType (string key)
     {
@@ -52,7 +51,7 @@ public class Database : MonoBehaviour , IDisposable
     {
         GetDatabase.databaseById.Remove(key);
     }
-    public void Dispose()
+    public override void Dispose()
     {
         foreach (var data in dataListType)
         {

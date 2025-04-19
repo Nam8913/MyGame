@@ -28,6 +28,35 @@ public static class CurrentGame
         }
     }
 
+    public static GameObject getSingletonObject
+    {
+        get
+        {
+            if(singletonObject == null)
+            {
+                singletonObject = GameObject.Find("Singletons");
+                if(singletonObject == null)
+                {
+                    singletonObject = new GameObject("Singletons");
+                    UnityEngine.Object.DontDestroyOnLoad(singletonObject);
+                }
+            }
+            return singletonObject;
+        }
+    }
+    public static SceneAbstract GetSceneObject
+    {
+        get
+        {
+            if (currScene == null)
+            {
+                Debug.LogError("No scene object found in the current game.");
+                return null;
+            }
+            return currScene;
+        }
+    }
+
     public static ScenePlay GetScenePlay
     {
         get
@@ -91,6 +120,7 @@ public static class CurrentGame
     private static ScenePlay playScene;
     private static SceneEntry entryScene;
     private static OverworldData worldData;
+    private static GameObject singletonObject = null;
 
     private static readonly List<string> sceneNames = new List<string>()
     {

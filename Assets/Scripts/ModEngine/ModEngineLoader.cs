@@ -7,7 +7,35 @@ using System.Xml;
 
 public static class ModEngineLoader
 {
-    public static List<ModContentPack> modActive = new List<ModContentPack>();
+    private static List<ModContentPack> modActive = new List<ModContentPack>();
+    public static ModContentPack GetModContentPack(string id)
+    {
+        foreach (var mod in modActive)
+        {
+            if (mod.PackID == id)
+            {
+                return mod;
+            }
+        }
+        Debug.LogError("Mod with id " + id + " not found");
+        return null;
+    }
+    public static ModContentPack GetModContentPackByName(string name)
+    {
+        foreach (var mod in modActive)
+        {
+            if (mod.GetModName == name)
+            {
+                return mod;
+            }
+        }
+        Debug.LogError("Mod with name " + name + " not found");
+        return null;
+    }
+    public static List<ModContentPack> GetAllModContentPack()
+    {
+        return modActive;
+    }
 
     public static void LoadModProcess()
     {
