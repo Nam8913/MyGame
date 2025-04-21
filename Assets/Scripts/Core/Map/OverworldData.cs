@@ -17,7 +17,7 @@ public class OverworldData
     #endregion
 
     public static readonly int chunkSize = 24;
-    public static int cachedSize = 2; // Số lượng chunk được lưu trong bộ nhớ xung quanh người chơi
+    public static int cachedSize = 4; // Số lượng chunk được lưu trong bộ nhớ xung quanh người chơi
 
     public static int GetHashSeed(string seed)
     {

@@ -12,7 +12,12 @@ public class Entity : MonoBehaviour
     public static GameObject MakeEntityFor(BuildableData build)
     {
         GameObject obj = new GameObject(build.name);
-        Type type = System.Type.GetType(build.entityClass);
+        Type type = GenTypes.GetTypeInAnyAssembly(build.entityClass);
+        if(typeof(Entity).IsAssignableFrom(type) == false)
+        {
+            Debug.LogError("Entity class " + build.entityClass + " is not a subclass of Entity.");
+            return null;
+        }
         obj.AddComponent(type);
         Entity ent = obj.GetComponent<Entity>();
         ent.dataDef = build;
@@ -22,6 +27,22 @@ public class Entity : MonoBehaviour
             Type compType = System.Type.GetType(item);
             if (compType != null)
             {
+                if (compType.IsSubclassOf(typeof(Component)) == false)
+                {
+                    Debug.LogError("Component type " + item + " is not a subclass of Component.");
+                    continue;
+                }
+                if (compType.IsAbstract)
+                {
+                    Debug.LogError("Component type " + item + " is abstract.");
+                    continue;
+                }
+                if (compType.IsGenericTypeDefinition)
+                {
+                    Debug.LogError("Component type " + item + " is a generic type definition.");
+                    continue;
+                }
+            
                 obj.AddComponent(compType);
             }
             else
@@ -46,20 +67,7 @@ public class Entity : MonoBehaviour
     }
     public virtual void Update()
     {
-        if(isAnimation)
-        {
-            timer += Time.deltaTime;
-            if(timer >= (1f / (dataDef.graphicType as GraphicMultiType).textures[currentFrame].frameRate))
-            {
-                currentFrame++;
-                if(currentFrame >= (dataDef.graphicType as GraphicMultiType).textures.Count)
-                {
-                    currentFrame = 0;
-                }
-                timer = 0;
-            }
-            spriteRenderer.sprite = GetSprite;
-        }
+        SpriteRender();
     }
     public virtual void FixedUpdate(){}
     public virtual void LateUpdate(){}
@@ -134,6 +142,24 @@ public class Entity : MonoBehaviour
         else
         {
             Debug.LogError("Action " + actionName + " not found on entity " + gameObject.name);
+        }
+    }
+
+    public virtual void SpriteRender()
+    {
+        if(isAnimation)
+        {
+            timer += Time.deltaTime;
+            if(timer >= (1f / (dataDef.graphicType as GraphicMultiType).textures[currentFrame].frameRate))
+            {
+                currentFrame++;
+                if(currentFrame >= (dataDef.graphicType as GraphicMultiType).textures.Count)
+                {
+                    currentFrame = 0;
+                }
+                timer = 0;
+            }
+            spriteRenderer.sprite = GetSprite;
         }
     }
 

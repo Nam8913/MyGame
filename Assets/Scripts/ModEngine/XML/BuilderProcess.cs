@@ -140,100 +140,73 @@ public static class BuilderProcess
                 type = "List"
             }.createProcess(nodeHolder)
             .CheckBool((BuilderProcessDeserialize prc) => {
-                if (prc.node == null) return false;
-
                 // Check if node has type attribute with value "List"
                 if (prc.node.Attributes?["type"] != null)
                 {
                     return prc.node.Attributes["type"].Value == "List";
                 }
-                
                 // Check if node has child nodes named "li"
-                if (prc.node.HasChildNodes)
-                {
-                    foreach (XmlNode child in prc.node.ChildNodes)
-                    {
-                        if (child.Name == "li")
-                        {
-                            return true;
-                        }
-                    }
-                }
-                
-                return false;
+                return prc.node.ChildNodes.Cast<XmlNode>().Any(child => child.Name == "li");
             }).Make((BuilderProcessDeserialize prc) =>
             {
                 object list = Activator.CreateInstance(Otype);
                 MethodInfo addMethod = Otype.GetMethod("Add");
                 foreach(XmlNode nodeValue in nodeHolder.ChildNodes)
                 {
-                    if(nodeValue.Name == "li")
+                    GetStringValue(nodeValue, out string str);
+                    if(CanSimpleParser(Otype.GetGenericArguments()[0]))
                     {
-                        if(prc.parent != null)
-                        {
-                            string str = nodeValue.InnerText;
-                            if (string.IsNullOrEmpty(str))
-                            {
-                                str = nodeValue.Attributes["value"]?.Value;
-                                if(string.IsNullOrEmpty(str))
-                                {
-                                    if(nodeValue.Attributes.Count != 0)
-                                    {
-                                        if(nodeValue.Attributes.Count != 1)
-                                        {
-                                            Debug.LogError(string.Concat("Invalid child node attributes, expected 1 attribute, but got: "
-                                            ,nodeValue.Attributes.Count
-                                            , "and by default the node will take the first attributes value \n"
-                                            ,nodeValue.Name
-                                            ,": "
-                                            ,nodeValue.Attributes[0].Value));
-                                        }
-                                        str = nodeValue.Attributes[0].Value;
-                                    }
-                                }
-                                
-                                if(string.IsNullOrEmpty(str))
-                                {
-                                    Debug.LogError("Invalid child node value, expected a value or attribute, but got: " + nodeValue.OuterXml);
-                                    return;
-                                }
-                            }
-                            object value = TypePatch.HelpParseType(str, Otype.GetGenericArguments()[0]);
-                            addMethod.Invoke(list, new object[] { value });
-                           
-                        }else
-                        {
-                            Debug.LogError("Parent is null, cannot add dataFields.");
-                            return;
-                        }
-                    }else
-                    {
-                        //make exception for node with only 1 child node that could be without <li> node
-                        if(nodeHolder.ChildNodes.Count == 1)
+                        if(nodeValue.Name == "li")
                         {
                             if(prc.parent != null)
                             {
-                                string str = nodeValue.InnerText;
-                                if (string.IsNullOrEmpty(str))
-                                {
-                                    str = nodeValue.Attributes["value"]?.Value;
-                                    if(string.IsNullOrEmpty(str))
-                                    {
-                                        Debug.LogError("Invalid child node value, expected a value or attribute, but got: " + nodeValue.OuterXml);
-                                        return;
-                                    }
-                                }
-                                object value = TypePatch.HelpParseType(str, Otype.GetGenericArguments()[0]);
+
+                                var value = TypePatch.HelpParseType(str, Otype.GetGenericArguments()[0]);
                                 addMethod.Invoke(list, new object[] { value });
+                            
                             }else
                             {
                                 Debug.LogError("Parent is null, cannot add dataFields.");
                                 return;
                             }
-                        }
+                        }else
+                        {
+                            //make exception for node with only 1 child node that could be without <li> node
+                            if(nodeHolder.ChildNodes.Count == 1)
+                            {
+                                if(prc.parent != null)
+                                {
+                                    var value = TypePatch.HelpParseType(str, Otype.GetGenericArguments()[0]);
+                                    addMethod.Invoke(list, new object[] { value });
+                                }else
+                                {
+                                    Debug.LogError("Parent is null, cannot add dataFields.");
+                                    return;
+                                }
+                            }
 
-                        Debug.LogError("Invalid child node type, expected 'li', but got: " + nodeValue.Name);
+                            Debug.LogError("Invalid child node type, expected 'li', but got: " + nodeValue.Name);
+                        }
+                    }else
+                    {
+                        if(CanOrderProcess(Otype.GetGenericArguments()[0]))
+                        {
+                            BuilderProcessDeserialize builder;
+                            // Determine the correct node to process
+                            builder = nodeValue.Name != "li"
+                                ? GetBuilderForType(Otype.GetGenericArguments()[0], nodeValue)
+                                : GetBuilderForType(Otype.GetGenericArguments()[0], nodeValue.FirstChild);
+                           
+                            prc.AddChild(builder);
+                            builder.Invoke();
+                            var value = builder.dataFields.Values.FirstOrDefault();
+                            addMethod.Invoke(list, new object[] { value });
+                        }else
+                        {
+                            Debug.LogError("Invalid child node type, expected 'li', but got: " + nodeValue.Name);
+                        }
                     }
+                    
                 }
 
                 if(prc.parent != null)
@@ -308,7 +281,7 @@ public static class BuilderProcess
                     }
                     catch (System.Exception ex)
                     {
-                        Debug.LogError("Error processing child node: " + ex.Message);
+                        Debug.LogError($"Error processing child node '{child.Name}' in type '{obj.GetType().FullName}': {ex.Message}");
                         continue;
                     }
                 }
@@ -392,8 +365,8 @@ public static class BuilderProcess
                         XmlNode valueNode = nodeValue["value"];
                         if(keyNode != null && valueNode != null)
                         {
-                            object key = Convert.ChangeType(keyNode.InnerText, Otype.GetGenericArguments()[0]);
-                            object value = Convert.ChangeType(valueNode.InnerText, Otype.GetGenericArguments()[1]);
+                            var key = TypePatch.HelpParseType(keyNode.InnerText, Otype.GetGenericArguments()[0]);
+                            var value = TypePatch.HelpParseType(valueNode.InnerText, Otype.GetGenericArguments()[1]);
                             addMethod.Invoke(dictionary, new object[] { key, value });
                         }
                         else
@@ -496,6 +469,36 @@ public static class BuilderProcess
             name = "Dictionary";
         }
         return name;
+    }
+
+    private static void GetStringValue(XmlNode node, out string str)
+    {
+        str = node.InnerText;
+        if (string.IsNullOrEmpty(str))
+        {
+            str = node.Attributes["value"]?.Value;   
+        }
+        if(string.IsNullOrEmpty(str))
+        {
+            if(node.Attributes.Count != 0)
+            {
+                if(node.Attributes.Count != 1)
+                {
+                    Debug.LogError(string.Concat("Invalid child node attributes, expected 1 attribute, but got: "
+                    ,node.Attributes.Count
+                    , "and by default the node will take the first attributes value \n"
+                    ,node.Name
+                    ,": "
+                    ,node.Attributes[0].Value));
+                }
+                str = node.Attributes[0].Value;
+            }
+        }
+        if(string.IsNullOrEmpty(str))
+        {
+            Debug.LogError("Invalid child node value, expected a value or attribute, but got: " + node.OuterXml);
+            return;
+        }
     }
 
    /// <summary>

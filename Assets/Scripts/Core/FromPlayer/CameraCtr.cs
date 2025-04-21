@@ -19,7 +19,7 @@ public class CameraCtr : MonoBehaviour
     private Vector3 velocity = Vector3.zero;
 
 
-    void LateUpdate()
+    void FixedUpdate()
     {
        if (player == null) return;
 

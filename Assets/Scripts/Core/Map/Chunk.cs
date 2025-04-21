@@ -1,18 +1,53 @@
+using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class Chunk : MonoBehaviour
 {
     public float heightChunk;
     public Vector2Int worldPosition;
-    public Vector2Int[,] tiles;
+    Dictionary<Vector2Int, TileObj> tilesDict = new Dictionary<Vector2Int, TileObj>();
 
     public void Init(Vector2Int pos)
     {
         worldPosition = pos;
-        tiles = new Vector2Int[OverworldData.chunkSize, OverworldData.chunkSize];
+        tilesDict = new Dictionary<Vector2Int, TileObj>();
+    }
+
+    public void ClearChunk()
+    {
+        foreach (var tile in tilesDict)
+        {
+            Destroy(tile.Value.gameObject);
+        }
+        tilesDict.Clear();
+        Destroy(gameObject);
+    }
+    public TileObj GetTileAt(Vector2Int pos)
+    {
+        if (tilesDict.TryGetValue(pos, out TileObj tile))
+        {
+            return tile;
+        }
+        return null;
+    }
+    public void AddTile(Vector2Int pos, TileObj tile)
+    {
+        if (tilesDict.ContainsKey(pos))
+        {
+            tilesDict[pos] = tile;
+        }
+        else
+        {
+            tilesDict.Add(pos, tile);
+        }
+    }
+    public void RemoveTile(Vector2Int pos)
+    {
+        if (tilesDict.ContainsKey(pos))
+        {
+            tilesDict.Remove(pos);
+        }
     }
 
     public static void GenerateChunk(Chunk chunk,GameObject prefab)
@@ -48,6 +83,7 @@ public class Chunk : MonoBehaviour
                 //rd.color = CurrentGame.GetScenePlay.layers.Where(x => x.height == tile.height).First().color;
                 rd.color = CurrentGame.GetScenePlay.layers.Where(x => tile.height >= x.height).Last().color;
                 
+                chunk.AddTile(new Vector2Int(x, y), tile);
             }
         }
         chunk.heightChunk = 

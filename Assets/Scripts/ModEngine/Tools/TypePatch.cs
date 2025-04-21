@@ -87,6 +87,8 @@ public static class TypePatch
         catch (InvalidCastException invalidCast)
         {
             Debug.LogError($"Can't convert {str} to {targetType.Name}");
+            Debug.LogError(invalidCast.Message);
+            Debug.LogError(invalidCast.StackTrace);
         }
         catch (System.Exception ex)
         {
