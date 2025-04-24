@@ -6,6 +6,7 @@ using UnityEngine;
 
 public static class OverWorldManager
 {
+    public static HPAStarChunkManager HPA;
     private static Dictionary<Vector2Int, Chunk> loadedChunks = new Dictionary<Vector2Int, Chunk>();
     public static void CreateWorld(OverworldData data,string seed)
     {
@@ -33,6 +34,12 @@ public static class OverWorldManager
                 yield return new WaitForSeconds(0.1f); // wait for 0.1 second to avoid freezing the main thread
             }
         }
+
+        if(HPA == null)
+        {
+            HPA = Chunk.ChunkManager.AddComponent<HPAStarChunkManager>();
+        }
+        
         yield return null;
     }
 
@@ -120,6 +127,10 @@ public static class OverWorldManager
         }
 
         loadedChunks[pos] = chunk;
+        if(OverWorldManager.HPA != null)
+        {
+            OverWorldManager.HPA.HandleChunkCreated(chunk);
+        }
     }
 
     public static Chunk GetChunkAt(Vector2Int pos)
@@ -136,12 +147,20 @@ public static class OverWorldManager
         }
         return null;
     }
+    public static Dictionary<Vector2Int, Chunk> GetLoadedChunks()
+    {
+        return loadedChunks;
+    }
     public static TileObj GetTileAt(Vector2Int pos)
     {
-        Chunk chunk = GetChunkAt(Chunk.GetChunk(pos));
+        Vector2Int chunkPos = Chunk.GetChunk(pos);
+        Chunk chunk = GetChunkAt(chunkPos);
         if (chunk != null)
         {
             return chunk.GetTileAt(pos);
+        }else
+        {
+            Debug.LogError($"Get chunk with value:{pos} return chunkPos:{chunkPos} not found!");
         }
         return null;
     }

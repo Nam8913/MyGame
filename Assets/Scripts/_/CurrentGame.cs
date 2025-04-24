@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -113,6 +114,34 @@ public static class CurrentGame
         {
             Debug.LogError("No scene object valid found in the current game.");
             return;
+        }
+    }
+
+    public static void DoLoadScene(string sceneName)
+    {
+        if (sceneNames.Contains(sceneName))
+        {
+            SceneManager.LoadScene(sceneName);
+            //GlobalNotifyChangedScene();
+        }
+        else
+        {
+            Debug.LogError("Scene " + sceneName + " not found in the current game.");
+        }
+    }
+
+    public static AsyncOperation DoLoadSceneAsync(string sceneOrderLoad)
+    {
+        if (sceneNames.Contains(sceneOrderLoad))
+        {
+            AsyncOperation asyncOperation = SceneManager.LoadSceneAsync(sceneOrderLoad);
+            asyncOperation.allowSceneActivation = false;
+            return asyncOperation;
+        }
+        else
+        {
+            Debug.LogError("Scene " + sceneOrderLoad + " not found in the current game.");
+            return null;
         }
     }
 

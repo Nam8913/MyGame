@@ -2,7 +2,7 @@ using UnityEngine;
 
 public abstract class SceneAbstract : MonoBehaviour
 {
-    private bool flag_check = true;
+    private bool isSceneDestroyed = false;
     void Init()
     {
 
@@ -18,17 +18,18 @@ public abstract class SceneAbstract : MonoBehaviour
  
     public virtual void Update()
     {
-        if(flag_check)
+        bool flag;
+        EventCall.UpdateEvent(out flag);
+        if(flag)
         {
-            // Do something inside ..
-            EventCall.UpdateEvent();
+            isSceneDestroyed = true;
         }
         
     }
 
     public virtual void FixedUpdate()
     {
-        if(flag_check)
+        if(!isSceneDestroyed)
         {
             // Do something inside ..
         }
@@ -36,7 +37,7 @@ public abstract class SceneAbstract : MonoBehaviour
 
     public virtual void LateUpdate()
     {
-        if(flag_check)
+        if(!isSceneDestroyed)
         {
             // Do something inside ..
         }
@@ -44,7 +45,7 @@ public abstract class SceneAbstract : MonoBehaviour
 
     public virtual void OnGUI()
     {
-        if(flag_check)
+        if(!isSceneDestroyed)
         {
             // Do something inside ..
         }
@@ -52,6 +53,6 @@ public abstract class SceneAbstract : MonoBehaviour
 
     private void OnDestroy()
     {
-        flag_check = false;
+        isSceneDestroyed = true;
     }
 }

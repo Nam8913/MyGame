@@ -134,7 +134,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      WoodFiredGenerator_0: -4624813463851224330
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

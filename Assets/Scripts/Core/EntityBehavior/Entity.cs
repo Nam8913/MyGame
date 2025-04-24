@@ -58,6 +58,7 @@ public class Entity : MonoBehaviour
     public virtual void Awake(){}
     public virtual void Start()
     {
+        SetDefault();
         if(sprites.Count > 0)
         {
             spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
@@ -82,6 +83,11 @@ public class Entity : MonoBehaviour
     public virtual void OnCollisionEnter2D(Collision2D other){}
     public virtual void OnCollisionExit2D(Collision2D other){}
     public virtual void OnCollisionStay2D(Collision2D other){}
+
+    public virtual void DeSpawm(string mode = "")
+    {
+        GameObject.Destroy(this.gameObject);
+    }
 
     public void CallSpriteSetup()
     {
@@ -162,8 +168,12 @@ public class Entity : MonoBehaviour
             spriteRenderer.sprite = GetSprite;
         }
     }
+    public virtual void SetDefault()
+    {
 
+    }
 
+    public bool showHint = false;
     private bool isAnimation = false;
     private float timer = 0f;
     private int currentFrame = 0;

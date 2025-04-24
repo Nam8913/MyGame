@@ -8,9 +8,14 @@ public class Player : MonoBehaviour
     public OverworldData data;
 
     public GameObject gamePrefab;
-    public float speed = 1f;  
+    public float speed = 1f;
+
+
     public Camera playerCamera;
     public MousePlayerCtr mousePlayerCtr;
+    public InventoryCtr inventoryCtr;
+    
+    
     private Rigidbody2D rb;
     private bool isGrounded;
 
@@ -18,9 +23,11 @@ public class Player : MonoBehaviour
     {
         playerCamera = CameraCtr.CreateCameraCtr(this);
         mousePlayerCtr = new MousePlayerCtr();
+        inventoryCtr = new InventoryCtr(this);
+
         OverWorldManager.CreateWorld(data, "TestSeed");
         rb = GetComponent<Rigidbody2D>();
-        Debug.LogWarning("Test: "+Singleton<DataStorage>.Instance.Equals(Database<DataStorage>.Get()));
+
         BuildableData dt = DataStorage.GetData("item_wood") as BuildableData;
         GenSpawn.Spawn(dt, new Vector3(0, 0, 0), Quaternion.identity);
         // Debug.LogWarning(((GraphicSingleType)dt.graphicType).texture.pivot);

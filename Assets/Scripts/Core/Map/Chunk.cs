@@ -8,6 +8,14 @@ public class Chunk : MonoBehaviour
     public Vector2Int worldPosition;
     Dictionary<Vector2Int, TileObj> tilesDict = new Dictionary<Vector2Int, TileObj>();
 
+    public Vector2Int GetLocalPos
+    {
+        get
+        {
+            return new Vector2Int(worldPosition.x * OverworldData.chunkSize, worldPosition.y * OverworldData.chunkSize);
+        }
+    }
+
     public void Init(Vector2Int pos)
     {
         worldPosition = pos;
@@ -28,6 +36,9 @@ public class Chunk : MonoBehaviour
         if (tilesDict.TryGetValue(pos, out TileObj tile))
         {
             return tile;
+        }else
+        {
+            Debug.LogError("Tile not found at position: " + pos + " in chunk: " + worldPosition);
         }
         return null;
     }
@@ -57,24 +68,27 @@ public class Chunk : MonoBehaviour
             ChunkManager = new GameObject("ChunkManager");
         }
         chunk.transform.parent = ChunkManager.transform;
-        int localX = chunk.worldPosition.x * OverworldData.chunkSize;
-        int localY = chunk.worldPosition.y * OverworldData.chunkSize;
-        chunk.name = "Chunk:" + localX + "_" + localY;
+        Vector2Int localPos = chunk.GetLocalPos;
+        int localX = localPos.x;
+        int localY = localPos.y;
+        chunk.name = "Chunk:" + chunk.worldPosition.x + "_" + chunk.worldPosition.y;
         chunk.transform.position = new Vector3(localX, localY, 0);
         //GameObject chunkObj = new GameObject("Chunk_" + chunk.worldPosition.x * OverworldData.chunkSize + "_" + chunk.worldPosition.y * OverworldData.chunkSize);
         
         OverworldData data = CurrentGame.getWorld;
-        float[,] heightMap = GenNoise.GenerateNoiseForChunk(chunk,data.scale,data.octaves, data.persistance, data.lacunarity, data.amplitude, data.frequency);
+        //float[,] heightMap = GenNoise.GenerateNoiseForChunk(chunk,data.scale,data.octaves, data.persistance, data.lacunarity, data.amplitude, data.frequency);
         
         for (int x = 0; x < OverworldData.chunkSize; x++)
         {
             for (int y = 0; y < OverworldData.chunkSize; y++)
             {
-                GameObject obj = new GameObject("Tile:" + x + "-" + y);
-                obj.transform.position = new Vector3(localX + x, localY + y, 0);
+                Vector2Int pos = new Vector2Int(localX + x, localY + y);
+                GameObject obj = new GameObject("Tile:" + pos.x + "-" + pos.y);
+                obj.transform.position = new Vector3(pos.x,pos.y, 0);
                 TileObj tile = obj.AddComponent<TileObj>();
-                tile.height = heightMap[x, y];
-                GameObject SpriteObj = Instantiate(prefab, new Vector3(localX + x, localY + y, 0.001f), Quaternion.identity);
+                //tile.height = heightMap[x, y];
+                tile.height = 0.9f;
+                GameObject SpriteObj = Instantiate(prefab, new Vector3(pos.x, pos.y, 0.001f), Quaternion.identity);
                 SpriteObj.transform.parent = obj.transform;
                 obj.transform.parent = chunk.transform;
 
@@ -83,19 +97,19 @@ public class Chunk : MonoBehaviour
                 //rd.color = CurrentGame.GetScenePlay.layers.Where(x => x.height == tile.height).First().color;
                 rd.color = CurrentGame.GetScenePlay.layers.Where(x => tile.height >= x.height).Last().color;
                 
-                chunk.AddTile(new Vector2Int(x, y), tile);
+                chunk.AddTile(new Vector2Int(pos.x, pos.y), tile);
             }
         }
-        chunk.heightChunk = 
-        (heightMap[0,0] + 
-        heightMap[OverworldData.chunkSize-1,0] + 
-        heightMap[0,OverworldData.chunkSize-1] + 
-        heightMap[OverworldData.chunkSize-1,OverworldData.chunkSize-1] + 
-        heightMap[(OverworldData.chunkSize-1)/2,0] + 
-        heightMap[0,(OverworldData.chunkSize-1)/2] + 
-        heightMap[(OverworldData.chunkSize-1)/2,OverworldData.chunkSize-1] + 
-        heightMap[OverworldData.chunkSize-1,(OverworldData.chunkSize-1)/2]) 
-        +heightMap[(OverworldData.chunkSize-1)/2,(OverworldData.chunkSize-1)/2]/ 8.5f;
+        // chunk.heightChunk = 
+        // (heightMap[0,0] + 
+        // heightMap[OverworldData.chunkSize-1,0] + 
+        // heightMap[0,OverworldData.chunkSize-1] + 
+        // heightMap[OverworldData.chunkSize-1,OverworldData.chunkSize-1] + 
+        // heightMap[(OverworldData.chunkSize-1)/2,0] + 
+        // heightMap[0,(OverworldData.chunkSize-1)/2] + 
+        // heightMap[(OverworldData.chunkSize-1)/2,OverworldData.chunkSize-1] + 
+        // heightMap[OverworldData.chunkSize-1,(OverworldData.chunkSize-1)/2]) 
+        // +heightMap[(OverworldData.chunkSize-1)/2,(OverworldData.chunkSize-1)/2]/ 8.5f;\
     }
 
     public void SaveChunk()

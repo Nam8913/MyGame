@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: f6fbc7b8dbb069d41a23549818a004f2
+guid: d2e929b6424ad7d4390dee0f4d41b36d
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 2828077047651648745
-    second: Smoke_0
+      213: -4552134046166045754
+    second: TurretMini_Base_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Smoke_0
+      name: TurretMini_Base_0
       rect:
         serializedVersion: 2
-        x: 7
-        y: 9
-        width: 106
-        height: 107
+        x: 57
+        y: 55
+        width: 77
+        height: 74
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 9e446be47195f3720800000000000000
-      internalID: 2828077047651648745
+      spriteID: 6cbaf48043293d0c0800000000000000
+      internalID: -4552134046166045754
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Smoke_0: 2828077047651648745
+      TurretMini_Base_0: -4552134046166045754
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

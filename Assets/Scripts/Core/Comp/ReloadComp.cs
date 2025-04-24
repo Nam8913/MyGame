@@ -21,6 +21,7 @@ public class ReloadComp : MonoBehaviour,IAction
     {
         if (Input.GetKeyDown(KeyCode.R)) // Check for reload input
         {
+            Debug.Log("Reloading weapon...");
             StartCoroutine(ReloadCoroutine());
         }
     }
