@@ -143,5 +143,7 @@ public static class DirectXmlLoader
         {
             Debug.LogError("Unified XML document is not valid");
         }
+        BuilderProcess.TryToFinishOrderForDataUnfinishOrMissing();
+        BuilderProcess.ClearUnfinishDataOrderProcess();
     }
 }

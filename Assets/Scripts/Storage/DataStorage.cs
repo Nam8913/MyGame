@@ -41,7 +41,25 @@ public class DataStorage : Database<DataStorage> , IDisposable
     }
     public static Data GetData (string key)
     {
-        return GetDatabase.databaseById[key];
+        return GetDatabase.databaseById.TryGetValue(key, out var data) ? data : null;
+    }
+    public static T GetData<T>(string key) where T : Data
+    {
+        T rs = null;
+        if (GetDatabase.databaseById.ContainsKey(key))
+        {
+            rs = GetDatabase.databaseById[key] as T;
+            if(rs != null)
+            {
+                return rs;
+            }
+            Debug.LogError("Data type is not match with key: " + key + " and type: " + typeof(T).Name);
+        }
+        else
+        {
+            Debug.LogError("Key not found: " + key);
+        }
+        return rs;
     }
     public static void AddData (string key, Data data)
     {

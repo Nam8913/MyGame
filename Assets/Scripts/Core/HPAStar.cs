@@ -25,7 +25,8 @@ public class HPAStarChunkManager : MonoBehaviour
         GenerateAllEntrances();
         BuildAllAbstractGraph();
 
-        Test test = gameObject.AddComponent<Test>();
+        Test test = CurrentGame.GetScenePlay.GetComponent<Test>();
+        test.Init();
     }
 
     void InitializeClusters()
@@ -280,97 +281,123 @@ public class HPAStarChunkManager : MonoBehaviour
     /// Scans the shared border between two clusters and merges consecutive walkable pairs
     /// into a single entrance at the middle of each contiguous segment.
     /// </summary>
+    // List<Entrance> ComputeMergedEntrances(Cluster a, Cluster b, Vector2Int offset) {
+    //     var list = new List<Entrance>();
+    //     int size = Size;
+    //     bool inSegment = false;
+    //     int segStart = 0;
+
+    //     // Helper to compute world positions
+    //     Func<int, Vector2Int> posAAt = i => a.origin + (offset == Vector2Int.right
+    //         ? new Vector2Int(size - 1, i)
+    //         : new Vector2Int(i, size - 1));
+    //     Func<Vector2Int, Vector2Int> posBFromA = pa => pa + offset;
+
+    //     for (int i = 0; i <= size; i++) {
+    //         bool walkable = false;
+    //         if (i < size) {
+    //             var pa = posAAt(i);
+    //             var pb = posBFromA(pa);
+    //             walkable = IsWalkable(pa) && IsWalkable(pb);
+    //         }
+
+    //         if (walkable && !inSegment) {
+    //             inSegment = true;
+    //             segStart = i;
+    //         } else if ((!walkable || i == size) && inSegment) {
+    //             // segment ends at i-1
+    //             int segEnd = i - 1;
+    //             int mid = (segStart + segEnd) / 2;
+    //             var paMid = posAAt(mid);
+    //             var pbMid = posBFromA(paMid);
+    //             list.Add(new Entrance(paMid, pbMid, segEnd - segStart + 1));
+    //             inSegment = false;
+    //         }
+    //     }
+    //     return list;
+    // }
     List<Entrance> ComputeMergedEntrances(Cluster a, Cluster b, Vector2Int offset) {
-        var list = new List<Entrance>();
-        int size = Size;
-        bool inSegment = false;
-        int segStart = 0;
+    var list = new List<Entrance>();
+    int size = Size;
+    bool inSegment = false;
+    int segStart = 0;
 
-        // Helper to compute world positions
-        Func<int, Vector2Int> posAAt = i => a.origin + (offset == Vector2Int.right
-            ? new Vector2Int(size - 1, i)
-            : new Vector2Int(i, size - 1));
-        Func<Vector2Int, Vector2Int> posBFromA = pa => pa + offset;
+    Func<int, Vector2Int> posAAt = i => a.origin + (offset == Vector2Int.right
+        ? new Vector2Int(size - 1, i)
+        : new Vector2Int(i, size - 1));
+    Func<Vector2Int, Vector2Int> posBFromA = pa => pa + offset;
 
-        for (int i = 0; i <= size; i++) {
-            bool walkable = false;
-            if (i < size) {
-                var pa = posAAt(i);
-                var pb = posBFromA(pa);
-                walkable = IsWalkable(pa) && IsWalkable(pb);
-            }
+    for (int i = 0; i <= size; i++) {
+        bool walkable = false;
+        if (i < size) {
+            var pa = posAAt(i);
+            var pb = posBFromA(pa);
+            walkable = IsWalkable(pa) && IsWalkable(pb);
+        }
 
-            if (walkable && !inSegment) {
-                inSegment = true;
-                segStart = i;
-            } else if ((!walkable || i == size) && inSegment) {
-                // segment ends at i-1
-                int segEnd = i - 1;
+        if (walkable && !inSegment) {
+            inSegment = true;
+            segStart = i;
+        } else if ((!walkable || i == size) && inSegment) {
+            int segEnd = i - 1;
+            int length = segEnd - segStart + 1;
+
+            if (length >= 3) {
+                int partLength = length / 3;
+                for (int part = 0; part < 3; part++) {
+                    int mid = segStart + part * partLength + partLength / 2;
+                    var paMid = posAAt(mid);
+                    var pbMid = posBFromA(paMid);
+                    list.Add(new Entrance(paMid, pbMid, partLength));
+                }
+                list.Add(new Entrance(posAAt(segStart), posBFromA(posAAt(segStart)), partLength));
+                list.Add(new Entrance(posAAt(segEnd), posBFromA(posAAt(segEnd)), partLength));
+            } else {
+                // Nếu đoạn ngắn quá (<3 tiles), tạo 1 entrance ở giữa như cũ
                 int mid = (segStart + segEnd) / 2;
                 var paMid = posAAt(mid);
                 var pbMid = posBFromA(paMid);
-                list.Add(new Entrance(paMid, pbMid, segEnd - segStart + 1));
-                inSegment = false;
+                list.Add(new Entrance(paMid, pbMid, length));
             }
+
+            inSegment = false;
         }
-        return list;
     }
+    return list;
+}
 
-    public List<Vector2Int> FindPath(Vector2Int start, Vector2Int goal)
-    {
-        var startCl = GetClusterAt(start);
-        var goalCl = GetClusterAt(goal);
-        if (startCl == goalCl)
-            return Pathfinding.AStarGrid(start, goal, IsWalkable);
-
+    public List<Vector2Int> FindPath(Vector2Int start, Vector2Int goal) {
+        var startCl = GetClusterAt(start); var goalCl = GetClusterAt(goal);
+        if (startCl == goalCl) return Pathfinding.AStarGrid(start, goal, IsWalkable);
         var startNodes = abstractGraph.GetNodesInRegion(startCl.origin, Size);
-        var goalNodes = abstractGraph.GetNodesInRegion(goalCl.origin, Size);
-
-        List<Vector2Int> bestPath = null;
-        float bestCost = float.MaxValue;
-
-        foreach (var sNode in startNodes)
-        {
+        var goalNodes  = abstractGraph.GetNodesInRegion(goalCl.origin,  Size);
+        List<Vector2Int> bestPath = null; float bestCost = float.MaxValue;
+        foreach (var sNode in startNodes) {
             var path1 = Pathfinding.AStarGrid(start, sNode.position, IsWalkable);
-            if (path1 == null) continue;
-            float cost1 = path1.Count;
-
-            foreach (var gNode in goalNodes)
-            {
+            if (path1 == null) continue; float cost1 = Pathfinding.PathCost(path1);
+            foreach (var gNode in goalNodes) {
                 var (absPath, cost2) = Pathfinding.AStarAbstract(sNode, gNode, abstractGraph);
                 if (absPath == null) continue;
-
                 var path3 = Pathfinding.AStarGrid(gNode.position, goal, IsWalkable);
-                if (path3 == null) continue;
-                float cost3 = path3.Count;
-
+                if (path3 == null) continue; float cost3 = Pathfinding.PathCost(path3);
                 float total = cost1 + cost2 + cost3;
-                if (total < bestCost)
-                {
+                if (total < bestCost) {
                     bestCost = total;
                     var full = new List<Vector2Int>(path1);
                     Vector2Int prev = sNode.position;
-                    foreach (var node in absPath.Skip(1))
-                    {
-                        if (Vector2Int.Distance(prev, node.position) <= 1)
-                        {
-                            full.Add(node.position);
-                        }
-                        else
-                        {
-                            var segment = Pathfinding.AStarGrid(prev, node.position, IsWalkable);
-                            segment.RemoveAt(0);
-                            full.AddRange(segment);
+                    foreach (var node in absPath.Skip(1)) {
+                        if ((prev - node.position).magnitude <= 1.1f) full.Add(node.position);
+                        else {
+                            var seg = Pathfinding.AStarGrid(prev, node.position, IsWalkable);
+                            seg.RemoveAt(0); full.AddRange(seg);
                         }
                         prev = node.position;
                     }
-                    path3.RemoveAt(0);
-                    full.AddRange(path3);
+                    path3.RemoveAt(0); full.AddRange(path3);
                     bestPath = full;
                 }
             }
         }
-
         return bestPath;
     }
 
@@ -414,6 +441,7 @@ public class HPAStarChunkManager : MonoBehaviour
             }
         }
     }
+    
 }
 
 #region Support Classes
@@ -471,121 +499,118 @@ public class AbstractEdge { public AbstractNode to; public float cost; public Ab
 #region Pathfinding Utilities
 public static class Pathfinding
 {
-    public static List<Vector2Int> AStarGrid(Vector2Int start, Vector2Int goal, System.Func<Vector2Int, bool> isWalkable)
-    {
+    static readonly Vector2Int[] directions = new Vector2Int[] {
+        Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right,
+        new Vector2Int(1,1), new Vector2Int(1,-1), new Vector2Int(-1,1), new Vector2Int(-1,-1)
+    };
+    static readonly float straightCost = 1f;
+    static readonly float diagCost = Mathf.Sqrt(2f);
+    public static List<Vector2Int> AStarGrid(Vector2Int start, Vector2Int goal, Func<Vector2Int,bool> isWalkable) {
         var open = new SimplePriorityQueue<NodeRecord>();
-        var cameFrom = new Dictionary<Vector2Int, Vector2Int>();
-        var costSoFar = new Dictionary<Vector2Int, float> { [start] = 0 };
-        open.Enqueue(new NodeRecord(start, 0), Heuristic(start, goal));
-
-        while (open.Count > 0)
-        {
+        var cameFrom = new Dictionary<Vector2Int,Vector2Int>();
+        var costSoFar = new Dictionary<Vector2Int,float> {{start,0f}};
+        open.Enqueue(new NodeRecord(start,0f), Heuristic(start,goal));
+        while(open.Count>0) {
             var current = open.Dequeue().pos;
-            if (current == goal) break;
-            foreach (var dir in new[] { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right })
-            {
+            if(current==goal) break;
+            foreach(var dir in directions) {
                 var next = current + dir;
-                if (!isWalkable(next)) continue;
-                float newCost = costSoFar[current] + 1;
-                if (!costSoFar.ContainsKey(next) || newCost < costSoFar[next])
-                {
+                if(!isWalkable(next)) continue;
+                // Corner-cutting: disallow diagonal if adjacent walls
+                if(Mathf.Abs(dir.x)==1 && Mathf.Abs(dir.y)==1) {
+                    var side1 = new Vector2Int(current.x + dir.x, current.y);
+                    var side2 = new Vector2Int(current.x, current.y + dir.y);
+                    if(!isWalkable(side1) || !isWalkable(side2))
+                        continue;
+                }
+                float moveCost = (Mathf.Abs(dir.x)==1 && Mathf.Abs(dir.y)==1) ? diagCost : straightCost;
+                float newCost = costSoFar[current] + moveCost;
+                if(!costSoFar.ContainsKey(next) || newCost < costSoFar[next]) {
                     costSoFar[next] = newCost;
-                    float priority = newCost + Heuristic(next, goal);
-                    open.Enqueue(new NodeRecord(next, newCost), priority);
+                    float priority = newCost + Heuristic(next,goal);
+                    open.Enqueue(new NodeRecord(next,newCost), priority);
                     cameFrom[next] = current;
                 }
             }
         }
-        if (!cameFrom.ContainsKey(goal)) return null;
-        var path = new List<Vector2Int>();
-        var cur = goal;
-        while (cur != start)
-        {
-            path.Add(cur);
-            cur = cameFrom[cur];
-        }
-        path.Add(start);
-        path.Reverse();
-        return path;
+        if(!cameFrom.ContainsKey(goal)) return null;
+        var path = new List<Vector2Int>(); var cur = goal;
+        while(cur != start) { path.Add(cur); cur = cameFrom[cur]; }
+        path.Add(start); path.Reverse(); return path;
     }
 
-    public static List<Vector2Int> AStarGridRestricted(Vector2Int start, Vector2Int goal, System.Func<Vector2Int, bool> isWalkable, Vector2Int ori, int size)
-    {
+    public static List<Vector2Int> AStarGridRestricted(Vector2Int start, Vector2Int goal, Func<Vector2Int,bool> isWalkable, Vector2Int ori, int size) {
         var open = new SimplePriorityQueue<NodeRecord>();
-        var cameFrom = new Dictionary<Vector2Int, Vector2Int>();
-        var costSoFar = new Dictionary<Vector2Int, float> { [start] = 0 };
-        open.Enqueue(new NodeRecord(start, 0), Heuristic(start, goal));
-
-        while (open.Count > 0)
-        {
+        var cameFrom = new Dictionary<Vector2Int,Vector2Int>();
+        var costSoFar = new Dictionary<Vector2Int,float> {{start,0f}};
+        open.Enqueue(new NodeRecord(start,0f), Heuristic(start,goal));
+        while(open.Count>0) {
             var current = open.Dequeue().pos;
-            if (current == goal) break;
-            foreach (var dir in new[] { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right })
-            {
+            if(current==goal) break;
+            foreach(var dir in directions) {
                 var next = current + dir;
-                if (next.x < ori.x || next.y < ori.y || next.x >= ori.x + size || next.y >= ori.y + size) continue;
-                if (!isWalkable(next)) continue;
-                float newCost = costSoFar[current] + 1;
-                if (!costSoFar.ContainsKey(next) || newCost < costSoFar[next])
-                {
+                if(next.x < ori.x || next.y < ori.y || next.x >= ori.x + size || next.y >= ori.y + size) continue;
+                if(!isWalkable(next)) continue;
+                if(Mathf.Abs(dir.x)==1 && Mathf.Abs(dir.y)==1) {
+                    var side1 = new Vector2Int(current.x + dir.x, current.y);
+                    var side2 = new Vector2Int(current.x, current.y + dir.y);
+                    if(!isWalkable(side1) || !isWalkable(side2))
+                        continue;
+                }
+                float moveCost = (Mathf.Abs(dir.x)==1 && Mathf.Abs(dir.y)==1) ? diagCost : straightCost;
+                float newCost = costSoFar[current] + moveCost;
+                if(!costSoFar.ContainsKey(next) || newCost < costSoFar[next]) {
                     costSoFar[next] = newCost;
-                    float priority = newCost + Heuristic(next, goal);
-                    open.Enqueue(new NodeRecord(next, newCost), priority);
+                    float priority = newCost + Heuristic(next,goal);
+                    open.Enqueue(new NodeRecord(next,newCost), priority);
                     cameFrom[next] = current;
                 }
             }
         }
-        if (!cameFrom.ContainsKey(goal)) return null;
-        var path = new List<Vector2Int>();
-        var cur = goal;
-        while (cur != start)
-        {
-            path.Add(cur);
-            cur = cameFrom[cur];
-        }
-        path.Add(start);
-        path.Reverse();
-        return path;
+        if(!cameFrom.ContainsKey(goal)) return null;
+        var path = new List<Vector2Int>(); var cur = goal;
+        while(cur != start) { path.Add(cur); cur = cameFrom[cur]; }
+        path.Add(start); path.Reverse(); return path;
     }
 
-    public static (List<AbstractNode>, float) AStarAbstract(AbstractNode start, AbstractNode goal, AbstractGraph graph)
-    {
-        var open = new SimplePriorityQueue<ANodeRecord>();
-        var cameFrom = new Dictionary<AbstractNode, AbstractNode>();
-        var costSoFar = new Dictionary<AbstractNode, float> { [start] = 0 };
-        open.Enqueue(new ANodeRecord(start, 0), 0);
-
-        while (open.Count > 0)
-        {
-            var current = open.Dequeue().node;
-            if (current == goal) break;
-            foreach (var edge in current.edges)
-            {
-                var next = edge.to;
-                float newCost = costSoFar[current] + edge.cost;
-                if (!costSoFar.ContainsKey(next) || newCost < costSoFar[next])
-                {
-                    costSoFar[next] = newCost;
-                    open.Enqueue(new ANodeRecord(next, newCost), newCost);
-                    cameFrom[next] = current;
+    public static (List<AbstractNode>,float) AStarAbstract(AbstractNode start, AbstractNode goal, AbstractGraph graph) {
+        var open=new SimplePriorityQueue<ANodeRecord>();
+        var cameFrom=new Dictionary<AbstractNode,AbstractNode>();
+        var costSoFar=new Dictionary<AbstractNode,float>{{start,0f}};
+        open.Enqueue(new ANodeRecord(start,0f),0f);
+        while(open.Count>0) {
+            var current=open.Dequeue().node;
+            if(current==goal) break;
+            foreach(var edge in current.edges) {
+                var next=edge.to; float newCost=costSoFar[current]+edge.cost;
+                if(!costSoFar.ContainsKey(next)||newCost<costSoFar[next]) {
+                    costSoFar[next]=newCost;
+                    open.Enqueue(new ANodeRecord(next,newCost),newCost);
+                    cameFrom[next]=current;
                 }
             }
         }
-        if (!costSoFar.ContainsKey(goal)) return (null, float.MaxValue);
-        var path = new List<AbstractNode>();
-        var cur = goal;
-        while (cur != start)
-        {
-            path.Add(cur);
-            cur = cameFrom[cur];
-        }
-        path.Add(start);
-        path.Reverse();
-        return (path, costSoFar[goal]);
+        if(!costSoFar.ContainsKey(goal)) return (null,float.MaxValue);
+        var path=new List<AbstractNode>(); var curN=goal;
+        while(curN!=start){path.Add(curN);curN=cameFrom[curN];}
+        path.Add(start);path.Reverse();return (path,costSoFar[goal]);
     }
 
-    static float Heuristic(Vector2Int a, Vector2Int b)
-        => Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y);
+
+    
+    static float Heuristic(Vector2Int a, Vector2Int b) {
+    int dx=Mathf.Abs(a.x-b.x), dy=Mathf.Abs(a.y-b.y);
+    return straightCost*(dx+dy) + (diagCost-2*straightCost)*Mathf.Min(dx,dy);
+    }
+
+    public static float PathCost(List<Vector2Int> path) {
+        float cost=0f;
+        for(int i=1;i<path.Count;i++) {
+            var d=path[i]-path[i-1];
+            cost += (Mathf.Abs(d.x)==1&&Mathf.Abs(d.y)==1)?diagCost:straightCost;
+        }
+        return cost;
+    }
 
     class NodeRecord { public Vector2Int pos; public float cost; public NodeRecord(Vector2Int p, float c) { pos = p; cost = c; } }
     class ANodeRecord { public AbstractNode node; public float cost; public ANodeRecord(AbstractNode n, float c) { node = n; cost = c; } }

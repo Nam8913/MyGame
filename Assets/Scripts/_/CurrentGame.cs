@@ -28,23 +28,6 @@ public static class CurrentGame
             worldData = value;
         }
     }
-
-    public static GameObject getSingletonObject
-    {
-        get
-        {
-            if(singletonObject == null)
-            {
-                singletonObject = GameObject.Find("Singletons");
-                if(singletonObject == null)
-                {
-                    singletonObject = new GameObject("Singletons");
-                    UnityEngine.Object.DontDestroyOnLoad(singletonObject);
-                }
-            }
-            return singletonObject;
-        }
-    }
     public static SceneAbstract GetSceneObject
     {
         get

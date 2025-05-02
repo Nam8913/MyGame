@@ -3,13 +3,15 @@ using UnityEngine;
 public abstract class SceneAbstract : MonoBehaviour
 {
     private bool isSceneDestroyed = false;
-    void Init()
+    void InitTestDemo()
     {
-
+        ModEngineConfig.Init();
+        ModEngineLoader.LoadModProcess();
     }
     public void Awake()
     {
         CurrentGame.GlobalNotifyChangedScene();
+        InitTestDemo();
     }
     public virtual void Start()
     {

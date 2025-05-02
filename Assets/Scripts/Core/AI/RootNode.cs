@@ -3,16 +3,16 @@ using UnityEngine;
 public sealed class RootNode : NodeAbstract
 {
     public NodeAbstract children;
-    protected override void Enter()
+    protected override void EnterNode()
     {
     }
 
-    protected override void Exit()
+    protected override void ExitNode()
     {
     }
 
-    protected override State UpdateState()
+    protected override State DoUpdateState()
     {
-        return children.GetUpdate();
+        return children.CallUpdate();
     }
 }

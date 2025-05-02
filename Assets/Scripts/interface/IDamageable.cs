@@ -2,5 +2,5 @@ using UnityEngine;
 
 public interface IDamageable
 {
-    void TakeDamage(BuildableData attacker);
+    void TakeDamage(Entity attacker);
 }

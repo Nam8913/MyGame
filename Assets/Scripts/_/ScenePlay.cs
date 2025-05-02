@@ -9,9 +9,6 @@ public class ScenePlay : SceneAbstract
     public override void Start()
     {
         base.Start();
-         
-        ModEngineConfig.Init();
-        ModEngineLoader.LoadModProcess();
     }
 
     // Update is called once per frame

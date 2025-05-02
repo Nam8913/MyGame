@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
-public class Entity : MonoBehaviour
+public class Entity : MonoBehaviour , IDamageable
 {
     public virtual T Get<T>() where T : BuildableData
     {
@@ -22,34 +22,38 @@ public class Entity : MonoBehaviour
         Entity ent = obj.GetComponent<Entity>();
         ent.dataDef = build;
 
-        foreach (var item in build.comps)
+        if(build.comps != null && build.comps.Count > 0)
         {
-            Type compType = System.Type.GetType(item);
-            if (compType != null)
+            foreach (var item in build.comps)
             {
-                if (compType.IsSubclassOf(typeof(Component)) == false)
+                Type compType = System.Type.GetType(item);
+                if (compType != null)
                 {
-                    Debug.LogError("Component type " + item + " is not a subclass of Component.");
-                    continue;
+                    if (compType.IsSubclassOf(typeof(Component)) == false)
+                    {
+                        Debug.LogError("Component type " + item + " is not a subclass of Component.");
+                        continue;
+                    }
+                    if (compType.IsAbstract)
+                    {
+                        Debug.LogError("Component type " + item + " is abstract.");
+                        continue;
+                    }
+                    if (compType.IsGenericTypeDefinition)
+                    {
+                        Debug.LogError("Component type " + item + " is a generic type definition.");
+                        continue;
+                    }
+                
+                    obj.AddComponent(compType);
                 }
-                if (compType.IsAbstract)
+                else
                 {
-                    Debug.LogError("Component type " + item + " is abstract.");
-                    continue;
+                    Debug.LogError("Component type " + item + " not found for entity " + build.name);
                 }
-                if (compType.IsGenericTypeDefinition)
-                {
-                    Debug.LogError("Component type " + item + " is a generic type definition.");
-                    continue;
-                }
-            
-                obj.AddComponent(compType);
-            }
-            else
-            {
-                Debug.LogError("Component type " + item + " not found for entity " + build.name);
             }
         }
+        
 
         ent.CallSpriteSetup();
         return obj;
@@ -170,7 +174,25 @@ public class Entity : MonoBehaviour
     }
     public virtual void SetDefault()
     {
+    }
 
+    public void TakeDamage(Entity attacker)
+    {
+        if(hitPoint > 0)
+        {
+            hitPoint -= attacker.DoDameToEntity();
+        }
+
+        if(hitPoint <= 0)
+        {
+            Debug.Log("Entity was destroy by " + attacker.name);
+            GameObject.Destroy(this.gameObject);
+        }
+    }
+
+    public virtual float DoDameToEntity()
+    {
+        return 1;
     }
 
     public bool showHint = false;
@@ -183,4 +205,5 @@ public class Entity : MonoBehaviour
 
     [SerializeField]
     public BuildableData dataDef;
+    public float hitPoint = 10;
 }

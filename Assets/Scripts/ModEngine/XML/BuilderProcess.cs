@@ -15,6 +15,7 @@ public class BuilderProcessDeserialize
     public XmlNode node;
     public string type;
     public Action<BuilderProcessDeserialize> actionDeferredProcess;
+    public Action<BuilderProcessDeserialize,Exception> ExeptionHandler;
     public Dictionary<string,object> dataFields = new Dictionary<string,object>();
 
     /// <summary>
@@ -89,7 +90,7 @@ public class BuilderProcessDeserialize
         parent.AddChild(this);
         return this;
     }
-    public BuilderProcessDeserialize CheckBool(Func<BuilderProcessDeserialize,bool> func,bool continueOnError = false)
+    public BuilderProcessDeserialize CheckBool(Func<BuilderProcessDeserialize,bool> func,Action<BuilderProcessDeserialize, Exception> exceptionHandle = null, bool continueOnError = false)
     {
         if (func == null)
         {
@@ -109,6 +110,7 @@ public class BuilderProcessDeserialize
         catch (Exception ex)
         {
             Debug.LogError($"Exception in CheckBool for node {(node != null ? node.Name : "null")}: {ex.Message}");
+            exceptionHandle?.Invoke(this, ex);
             return continueOnError ? this : null;
         }
         return this;
@@ -147,7 +149,27 @@ public static class BuilderProcess
                 }
                 // Check if node has child nodes named "li"
                 return prc.node.ChildNodes.Cast<XmlNode>().Any(child => child.Name == "li");
-            }).Make((BuilderProcessDeserialize prc) =>
+            },
+            (BuilderProcessDeserialize prc,Exception ex) => {
+                object list = Activator.CreateInstance(Otype);
+                MethodInfo addMethod = Otype.GetMethod("Add");
+                foreach(XmlNode nodeValue in nodeHolder.ChildNodes)
+                {
+                    if(CanOrderProcess(Otype.GetGenericArguments()[0]))
+                    {
+                        BuilderProcessDeserialize builder;
+                        // Determine the correct node to process
+                        builder = nodeValue.Name != "li"
+                            ? GetBuilderForType(Otype.GetGenericArguments()[0], nodeValue)
+                            : GetBuilderForType(Otype.GetGenericArguments()[0], nodeValue.FirstChild);
+                        
+                        prc.AddChild(builder);
+                        builder.Invoke();
+                        var value = builder.dataFields.Values.FirstOrDefault();
+                        addMethod.Invoke(list, new object[] { value });
+                    }
+                }
+            },false).Make((BuilderProcessDeserialize prc) =>
             {
                 object list = Activator.CreateInstance(Otype);
                 MethodInfo addMethod = Otype.GetMethod("Add");
@@ -187,24 +209,6 @@ public static class BuilderProcess
 
                             Debug.LogError("Invalid child node type, expected 'li', but got: " + nodeValue.Name);
                         }
-                    }else
-                    {
-                        if(CanOrderProcess(Otype.GetGenericArguments()[0]))
-                        {
-                            BuilderProcessDeserialize builder;
-                            // Determine the correct node to process
-                            builder = nodeValue.Name != "li"
-                                ? GetBuilderForType(Otype.GetGenericArguments()[0], nodeValue)
-                                : GetBuilderForType(Otype.GetGenericArguments()[0], nodeValue.FirstChild);
-                           
-                            prc.AddChild(builder);
-                            builder.Invoke();
-                            var value = builder.dataFields.Values.FirstOrDefault();
-                            addMethod.Invoke(list, new object[] { value });
-                        }else
-                        {
-                            Debug.LogError("Invalid child node type, expected 'li', but got: " + nodeValue.Name);
-                        }
                     }
                     
                 }
@@ -242,7 +246,7 @@ public static class BuilderProcess
                         {
                             try
                             {
-                                if(field.GetValue(obj) == null && (TypePatch.IsList(field.FieldType) || TypePatch.IsDictionary(field.FieldType)))
+                                if((TypePatch.IsList(field.FieldType) || TypePatch.IsDictionary(field.FieldType)))
                                 {
                                     object instance = Activator.CreateInstance(field.FieldType);
                                     field.SetValue(obj, instance);
@@ -274,6 +278,11 @@ public static class BuilderProcess
                             }
                         }else
                         {
+                            if(obj is null)
+                            {
+                                Debug.LogError("Object is null, cannot set field value.");
+                                continue;
+                            }
                             Debug.LogError("Invalid name node:" + child.Name + " with value [" + child.OuterXml + "] for get field in type object: " + obj.GetType().FullName);
                             continue;
                         }
@@ -288,6 +297,10 @@ public static class BuilderProcess
 
                 foreach (XmlAttribute attr in node.Attributes)
                 {
+                    if(HandleUniqueAttribute(node, attr, obj))
+                    {
+                        continue;
+                    }
                     FieldInfo field = obj.GetType().GetField(attr.Name);
                     if(field != null)
                     {
@@ -428,15 +441,16 @@ public static class BuilderProcess
         string name = GetOrderWith(type);
        if (ProcessOrder.TryGetValue(name, out var processor))
         {
+            BuilderProcessDeserialize rs = null;
             try
             {
-                return processor(xmlNode, type);
+                rs = processor(xmlNode, type);
             }
             catch (Exception ex)
             {
-                Debug.LogError($"Error creating builder for type {name}: {ex.Message}");
-                return null;
+                Debug.LogError($"Error processing node '{xmlNode.Name}' with type '{type}': {ex.Message}");
             }
+            return rs;
         }
         
         Debug.LogError($"Not found builder for {name}");
@@ -501,6 +515,47 @@ public static class BuilderProcess
         }
     }
 
+    public static bool HandleUniqueAttribute(XmlNode node,XmlAttribute xmlAttribute, object obj)
+    {
+        if(xmlAttribute == null)
+        {
+            Debug.LogError("XmlAttribute is null for node: " + node.Name);
+            return false;
+        }
+        if(obj == null)
+        {
+            Debug.LogError("Object is null for node: " + node.Name);
+            return false;
+        }
+        if(xmlAttribute.Name == "OrderDataById")
+        {
+            string orderData = xmlAttribute.Value;
+            if(!string.IsNullOrEmpty(orderData))
+            {
+                Data data = DataStorage.GetData(orderData);
+                if(data == null)
+                {
+                    if(doLastCheck)
+                    {
+                        Debug.LogError("Data not found for OrderDataById: " + orderData + " in node: " + node.Name);
+                    }else
+                    {
+                        AddUnfinishDataOrderProcess(obj,node);
+                        Debug.LogWarning("Add missing data to order missing data");
+                    }
+                    return false;
+                }
+                obj.GetType().GetField(node.Name).SetValue(obj, data);
+               
+            }
+            else
+            {
+                Debug.LogError("OrderDataById is null or empty for node: " + node.Name);
+            }
+            return true;
+        }
+        return false;
+    }
    /// <summary>
     /// Initializes the BuilderProcess system
     /// </summary>
@@ -510,4 +565,28 @@ public static class BuilderProcess
         // The static constructor already initializes everything
     }
 
+    public static void TryToFinishOrderForDataUnfinishOrMissing()
+    {
+        doLastCheck = true;
+        foreach (var item in unfinishDataOrderProcess)
+        {
+            var obj = item.Item1;
+            var node = item.Item2;
+            if(node.Attributes["OrderDataById"] != null)
+            {
+                HandleUniqueAttribute(node, node.Attributes["OrderDataById"], obj);
+            }
+        }
+    }
+
+    public static bool doLastCheck = false;
+    public static List<(object,XmlNode)> unfinishDataOrderProcess = new List<(object,XmlNode)>(); // for data that is not finish or missing data 
+    public static void ClearUnfinishDataOrderProcess()
+    {
+        unfinishDataOrderProcess.Clear();
+    }
+    public static void AddUnfinishDataOrderProcess(object obj,XmlNode node)
+    {
+        unfinishDataOrderProcess.Add((obj,node));
+    }
 }

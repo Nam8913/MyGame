@@ -93,6 +93,7 @@ public class ShootComp : MonoBehaviour, IAction
         Vector3 spawnPos = firePoint.position;
 
         GameObject bullet = Instantiate(bulletPrefab, spawnPos, rotation);
+        bullet.GetComponent<ProjectileComp>().owner = entity;
         bullet.GetComponent<Rigidbody2D>().linearVelocity = rotation * Vector2.up * bulletSpeed;
     }
 }
